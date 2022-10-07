@@ -30,6 +30,18 @@ class User {
     const [result] = await connection.execute(statement, [id])
     return result[0]
   }
+
+  async care(fromUid, toUid) {
+    const statement = `insert into care_fans values(?, ?)`
+    const [result] = await connection.execute(statement, [fromUid, toUid])
+    return result[0]
+  }
+
+  async cancelCare(fromUid, toUid) {
+    const statement = `delete from care_fans where from_uid = ? and to_uid = ?`
+    const [result] = await connection.execute(statement, [fromUid, toUid])
+    return result[0]
+  }
 }
 
 module.exports = new User()

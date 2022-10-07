@@ -15,6 +15,8 @@ module.exports = {
   MYSQL_PASSWORD,
   REDIS_PORT,
   REDIS_HOST,
+  MY_EMAIL,
+  MY_EMAIL_PASS,
 } = process.env
 
 module.exports.PRIVATE_KEY = PRIVATE_KEY

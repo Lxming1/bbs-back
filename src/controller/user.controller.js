@@ -1,13 +1,11 @@
 const fs = require('fs')
 const { AVATAR_PATH } = require('../constants/file-types')
-const { getAvatarInfo } = require('../service/user.service')
+const { getAvatarInfo, care, cancelCare } = require('../service/user.service')
 const service = require('../service/user.service')
 const { successMes } = require('../utils/common')
 const redis = require('../utils/redis')
 
 class User {
-  async verifyEmail(ctx, next) {}
-
   async create(ctx, next) {
     const { email, password } = ctx.request.body
     await service.create({ email, password })
@@ -27,6 +25,20 @@ class User {
 
   async reactive(ctx) {
     ctx.body = successMes('验证码发送成功，请及时查收')
+  }
+
+  async care(ctx) {
+    const { userId: toUid } = ctx.params
+    const { userId: formUid } = ctx.user
+    await care(formUid, toUid)
+    ctx.body = successMes('关注成功')
+  }
+
+  async cancelCare(ctx) {
+    const { userId: toUid } = ctx.params
+    const { userId: formUid } = ctx.user
+    await cancelCare(formUid, toUid)
+    ctx.body = successMes('取消关注成功')
   }
 }
 

@@ -8,7 +8,7 @@ class Auth {
     const { id, name, username: uname, school } = ctx.user
     const username = uname || '小白'
     const token = jwt.sign({ id, name }, PRIVATE_KEY, {
-      expiresIn: 60 * 60 * 24,
+      expiresIn: 60 * 60 * 24 * 30,
       algorithm: 'RS256',
     })
 

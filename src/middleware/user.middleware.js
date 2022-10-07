@@ -1,9 +1,10 @@
 const nodemailer = require('nodemailer')
 
 const errorTypes = require('../constants/error-types')
-const { getUserByEmail } = require('../service/user.service')
-const { md5handle, verifyEmail, randomFns, successMes } = require('../utils/common')
 const redis = require('../utils/redis')
+const { getUserByEmail } = require('../service/user.service')
+const { md5handle, verifyEmail, randomFns } = require('../utils/common')
+const { MY_EMAIL, MY_EMAIL_PASS } = require('../app/config.js')
 
 // 验证邮箱密码
 const verifyPass = async (ctx, next) => {
@@ -62,24 +63,24 @@ const sendEmail = async (ctx, next) => {
   const code = randomFns()
 
   const transporter = nodemailer.createTransport({
-    host: 'smtp.qq.com',
+    host: 'smtp.163.com',
     port: 465,
     secure: true,
     auth: {
-      user: '1215743289@qq.com',
-      pass: 'tdihgfygcjvvicdb',
+      user: MY_EMAIL,
+      pass: MY_EMAIL_PASS,
     },
   })
 
   await redis.set(email, code, 'EX', 5 * 60)
 
   const receiver = {
-    from: '1215743289@qq.com',
+    from: MY_EMAIL,
     to: email,
     subject: '验证你的电子邮件',
     html: `
       <p>你好！</p>
-      <p>您正在注册BBS账号</p>
+      <p>您正在注册PYPBBS账号</p>
       <p>你的验证码是：<strong style="color: #ff4e2a;">${code}</strong></p>
       <p>***该验证码5分钟内有效***</p>
     `,
@@ -100,6 +101,7 @@ const verifyCode = async (ctx, next) => {
   const { email, code } = ctx.request.body
   const rightCode = await redis.get(email)
 
+  console.log(rightCode, code)
   if (rightCode !== code) {
     const err = new Error(errorTypes.CODE_IS_INCORRECT)
     return ctx.app.emit('error', err, ctx)
