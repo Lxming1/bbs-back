@@ -27,7 +27,7 @@ const verifyLogin = async (ctx, next) => {
     const err = new Error(errorTypes.PASSORD_ERROR)
     return ctx.app.emit('error', err, ctx)
   }
-
+  delete result.password
   ctx.user = result
   await next()
 }
@@ -73,20 +73,8 @@ const verifyPermission = async (ctx, next) => {
   await next()
 }
 
-const setSchool = async (ctx, next) => {
-  const user = ctx.user
-  if (user.school_id !== null) {
-    const schoolMes = await getSchool(user.school_id)
-    user.school = schoolMes
-  } else {
-    user.school = null
-  }
-  await next()
-}
-
 module.exports = {
   verifyLogin,
   verifyAuth,
   verifyPermission,
-  setSchool,
 }

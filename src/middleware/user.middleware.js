@@ -6,6 +6,16 @@ const { getUserByEmail } = require('../service/user.service')
 const { md5handle, verifyEmail, randomFns } = require('../utils/common')
 const { MY_EMAIL, MY_EMAIL_PASS } = require('../app/config.js')
 
+const verifyName = async (ctx, next) => {
+  const { name } = ctx.request.body
+  if (!name) {
+    const err = new Erro(errorTypes.NAME_IS_REQUIRED)
+    return ctx.app.emit('error', err, ctx)
+  }
+
+  await next()
+}
+
 // 验证邮箱密码
 const verifyPass = async (ctx, next) => {
   // 抽取数据
@@ -23,7 +33,6 @@ const verifyPass = async (ctx, next) => {
 const handlePassword = async (ctx, next) => {
   const { password } = ctx.request.body
   ctx.request.body.password = md5handle(password)
-
   await next()
 }
 
@@ -101,7 +110,6 @@ const verifyCode = async (ctx, next) => {
   const { email, code } = ctx.request.body
   const rightCode = await redis.get(email)
 
-  console.log(rightCode, code)
   if (rightCode !== code) {
     const err = new Error(errorTypes.CODE_IS_INCORRECT)
     return ctx.app.emit('error', err, ctx)
@@ -111,6 +119,7 @@ const verifyCode = async (ctx, next) => {
 }
 
 module.exports = {
+  verifyName,
   verifyPass,
   verifyUEmail,
   handlePassword,

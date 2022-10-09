@@ -2,6 +2,7 @@ const Router = require('koa-router')
 const { create, showAvatar, reactive, care, cancelCare } = require('../controller/user.controller')
 const { verifyAuth } = require('../middleware/auth.middleware')
 const {
+  verifyName,
   verifyUEmail,
   sendEmail,
   verifyCode,
@@ -13,7 +14,7 @@ const userRouter = new Router({ prefix: '/users' })
 // 发送验证码
 userRouter.post('/sendemail', verifyUEmail, sendEmail, reactive)
 // 注册
-userRouter.post('/', verifyUEmail, verifyCode, verifyPass, handlePassword, create)
+userRouter.post('/', verifyName, verifyUEmail, verifyCode, verifyPass, handlePassword, create)
 // 获取头像
 userRouter.get('/:userId/avatar', showAvatar)
 // 关注

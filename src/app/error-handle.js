@@ -10,12 +10,17 @@ const {
   EXIST_CODE,
   EMAIL_ERROR,
   CODE_IS_INCORRECT,
+  NAME_IS_REQUIRED,
 } = require('../constants/error-types')
 
 const errorHandle = (err, ctx) => {
   let status, errMessage, code
 
   switch (err.message) {
+    case NAME_IS_REQUIRED:
+      status = 400
+      code = 1
+      break
     case PASSWORD_IS_REQUIRED:
       status = 400 //Bad request
       code = 1

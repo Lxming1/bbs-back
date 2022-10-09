@@ -1,5 +1,6 @@
 const PASSWORD_IS_REQUIRED = '密码是必填项'
 const EMAIL_IS_REQUIRED = '邮箱是必填项'
+const NAME_IS_REQUIRED = '昵称是必填项'
 const EMAIL_ALREADY_EXIST = '邮箱已被注册'
 const EMAIL_DOSE_NOT_EXIST = '邮箱不存在'
 const EMAIL_IS_INCORRECT = '邮箱格式错误'
@@ -11,6 +12,7 @@ const CODE_IS_INCORRECT = '验证码错误'
 const EXIST_CODE = '您在5分钟内已申请过验证码，请注意查收'
 
 module.exports = {
+  NAME_IS_REQUIRED,
   PASSWORD_IS_REQUIRED,
   EMAIL_IS_REQUIRED,
   EMAIL_ALREADY_EXIST,
