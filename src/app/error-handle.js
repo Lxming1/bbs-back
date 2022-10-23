@@ -1,31 +1,21 @@
 const {
-  PASSWORD_IS_REQUIRED,
-  EMAIL_IS_REQUIRED,
   EMAIL_ALREADY_EXIST,
   EMAIL_DOSE_NOT_EXIST,
   PASSORD_ERROR,
   UNAUTHORIZATION,
   UNPERMISSION,
-  EMAIL_IS_INCORRECT,
   EXIST_CODE,
   EMAIL_ERROR,
   CODE_IS_INCORRECT,
-  NAME_IS_REQUIRED,
+  MISSING_PARAMETER,
+  FORMAT_ERROR,
 } = require('../constants/error-types')
 
 const errorHandle = (err, ctx) => {
   let status, errMessage, code
 
   switch (err.message) {
-    case NAME_IS_REQUIRED:
-      status = 400
-      code = 1
-      break
-    case PASSWORD_IS_REQUIRED:
-      status = 400 //Bad request
-      code = 1
-      break
-    case EMAIL_IS_REQUIRED:
+    case MISSING_PARAMETER:
       status = 400 //Bad request
       code = 1
       break
@@ -49,7 +39,7 @@ const errorHandle = (err, ctx) => {
       status = 400 //Bad request
       code = 2
       break
-    case EMAIL_IS_INCORRECT:
+    case FORMAT_ERROR:
       status = 400
       code = 2
       break

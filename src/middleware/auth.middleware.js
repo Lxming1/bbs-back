@@ -3,7 +3,12 @@ const { PUBLIC_KEY } = require('../app/config')
 
 const errorTypes = require('../constants/error-types')
 const { checkResource } = require('../service/auth.service')
-const { getUserByEmail, getSchool } = require('../service/user.service')
+const {
+  getUserByEmail,
+  getAddressInfo,
+  getDetailInfo,
+  getUserAvatar,
+} = require('../service/user.service')
 const { md5handle } = require('../utils/common')
 
 const verifyLogin = async (ctx, next) => {
@@ -21,15 +26,44 @@ const verifyLogin = async (ctx, next) => {
     const err = new Error(errorTypes.EMAIL_DOSE_NOT_EXIST)
     return ctx.app.emit('error', err, ctx)
   }
-
   //判断密码是否正确
   if (result.password !== md5handle(user.password)) {
     const err = new Error(errorTypes.PASSORD_ERROR)
     return ctx.app.emit('error', err, ctx)
   }
-  delete result.password
+
   ctx.user = result
+
   await next()
+}
+
+const setDetailInfo = async (ctx, next) => {
+  try {
+    const { id, email, create_at, update_at } = ctx.user
+    const { name, age, gender, introduction, avatar_url } = (await getDetailInfo(1))[0]
+    const { country, province, city } = (await getAddressInfo(1))[0]
+
+    const userInfo = {
+      id,
+      email,
+      name,
+      age,
+      gender,
+      introduction,
+      avatar_url,
+      create_at,
+      update_at,
+    }
+
+    ctx.user = {
+      ...userInfo,
+      address: { country, province, city },
+    }
+
+    await next()
+  } catch (e) {
+    console.log(e)
+  }
 }
 
 const verifyAuth = async (ctx, next) => {
@@ -75,6 +109,7 @@ const verifyPermission = async (ctx, next) => {
 
 module.exports = {
   verifyLogin,
+  setDetailInfo,
   verifyAuth,
   verifyPermission,
 }

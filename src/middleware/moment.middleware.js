@@ -1,48 +1,63 @@
-const {
-  UNPERMISSION,
-  QUERY_KEY_ERROR,
-  QUERY_VALUE_ERROR,
-  PARAMS_VALUE_ERROR,
-} = require('../constants/error-types')
-const { checkResource } = require('../service/auth.service')
+const { FORMAT_ERROR } = require('../constants/error-types')
+const { list, detail } = require('../service/moment.service')
+const { getDetailInfo, getAddressInfo } = require('../service/user.service')
 
-// const verifyPermission = async (ctx, next) => {
-//   const momentId = ctx.params.momentId
-//   // 不存在momentId
-//   if (!momentId) {
-//     const err = new Error(QUERY_KEY_ERROR)
-//     return ctx.app.emit('error', err, ctx)
-//   }
+const setMultiUserInfo = async (ctx, next) => {
+  const { pagenum, pagesize } = ctx.query
+  if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
+    const err = new Error(FORMAT_ERROR)
+    return ctx.app.emit('error', err, ctx)
+  }
 
-//   const result = await checkResource('moment', momentId)
-//   // 找不到对应id的评论
-//   if (!result.length) {
-//     const err = new Error(PARAMS_VALUE_ERROR)
-//     return ctx.app.emit('error', err, ctx)
-//   }
+  try {
+    let result = await list(pagesize, pagenum)
+    if (!result) {
+      ctx.result = []
+    } else {
+      ctx.result = result.map(async (item) => {
+        const author = await resetDetail(item)
+        item.author = author
+        return item
+      })
+    }
+    await next()
+  } catch (err) {
+    console.log(err)
+  }
+}
 
-//   const userId = result[0].userId
-//   // 不是本人修改
-//   if (ctx.user.id !== userId) {
-//     const err = new Error(UNPERMISSION)
-//     return ctx.app.emit('error', err, ctx)
-//   }
-//   await next()
-// }
+const setSingleUserInfo = async (ctx, next) => {
+  const { momentId } = ctx.params
+  try {
+    const result = (await detail(momentId))[0]
+    if (!result) {
+      ctx.result = null
+    } else {
+      const author = await resetDetail(result)
+      result.author = author
+      ctx.result = result
+    }
+    await next()
+  } catch (err) {
+    console.log(err)
+  }
 
-// const verifyQuery = async (ctx, next) => {
-//   const { pagenum, pagesize } = ctx.query
-//   if (!pagenum || !pagesize) {
-//     const err = new Error(QUERY_KEY_ERROR)
-//     return ctx.app.emit('error', err, ctx)
-//   }
-//   if (parseInt(pagesize) < 0 || parseInt(pagenum) <= 0) {
-//     const err = new Error(QUERY_VALUE_ERROR)
-//     return ctx.app.emit('error', err, ctx)
-//   }
-//   await next()
-// }
+  await next()
+}
+
+async function resetDetail(result) {
+  const user = result.author
+  const userInfo = await getDetailInfo(user.detailId)
+  if (userInfo.address_id) {
+    const address = await getAddressInfo(userInfo.address_id)
+    userInfo.address = address
+  }
+  delete result.author.detailId
+  return { ...result.author, ...userInfo }
+}
 
 module.exports = {
   // verifyQuery,
+  setMultiUserInfo,
+  setSingleUserInfo,
 }

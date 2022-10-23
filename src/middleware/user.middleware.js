@@ -6,15 +6,15 @@ const { getUserByEmail } = require('../service/user.service')
 const { md5handle, verifyEmail, randomFns } = require('../utils/common')
 const { MY_EMAIL, MY_EMAIL_PASS } = require('../app/config.js')
 
-const verifyName = async (ctx, next) => {
-  const { name } = ctx.request.body
-  if (!name) {
-    const err = new Erro(errorTypes.NAME_IS_REQUIRED)
-    return ctx.app.emit('error', err, ctx)
-  }
+// const verifyName = async (ctx, next) => {
+//   const { name } = ctx.request.body
+//   if (!name) {
+//     const err = new Error(errorTypes.NAME_IS_REQUIRED)
+//     return ctx.app.emit('error', err, ctx)
+//   }
 
-  await next()
-}
+//   await next()
+// }
 
 // 验证邮箱密码
 const verifyPass = async (ctx, next) => {
@@ -43,7 +43,6 @@ const verifyUEmail = async (ctx, next) => {
     const err = new Error(errorTypes.EMAIL_OR_PASSWORD_IS_REQUIRED)
     return ctx.app.emit('error', err, ctx)
   }
-
   // 验证邮箱有效性
   if (!verifyEmail(email)) {
     const err = new Error(errorTypes.EMAIL_IS_INCORRECT)
@@ -62,13 +61,12 @@ const verifyUEmail = async (ctx, next) => {
 
 const sendEmail = async (ctx, next) => {
   const { email } = ctx.request.body
-
   const result = await redis.get(email)
+
   if (result) {
     const err = new Error(errorTypes.EXIST_CODE)
     return ctx.app.emit('error', err, ctx)
   }
-
   const code = randomFns()
 
   const transporter = nodemailer.createTransport({
@@ -81,7 +79,7 @@ const sendEmail = async (ctx, next) => {
     },
   })
 
-  await redis.set(email, code, 'EX', 5 * 60)
+  await redis.set(email, code, 'EX', 60)
 
   const receiver = {
     from: MY_EMAIL,
@@ -91,12 +89,13 @@ const sendEmail = async (ctx, next) => {
       <p>你好！</p>
       <p>您正在注册PYPBBS账号</p>
       <p>你的验证码是：<strong style="color: #ff4e2a;">${code}</strong></p>
-      <p>***该验证码5分钟内有效***</p>
+      <p>***该验证码1分钟内有效***</p>
     `,
   }
 
-  transporter.sendMail(receiver, (err, info) => {
+  await transporter.sendMail(receiver, (err, info) => {
     if (err) {
+      console.log(err)
       const err = new Error(errorTypes.EMAIL_ERROR)
       return ctx.app.emit('error', err, ctx)
     }
@@ -119,7 +118,7 @@ const verifyCode = async (ctx, next) => {
 }
 
 module.exports = {
-  verifyName,
+  // verifyName,
   verifyPass,
   verifyUEmail,
   handlePassword,

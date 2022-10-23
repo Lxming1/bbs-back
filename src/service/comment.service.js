@@ -47,7 +47,7 @@ class Comment {
         c.id id, c.content content, c.comment_id commentId,
         JSON_OBJECT('id', u.id, 'name', u.name, 'avatarUrl', u.avatar_url) author,
         JSON_OBJECT('id', u1.id, 'name', u1.name, 'avatarUrl', u1.avatar_url) object,
-        c.createAt createTime, c.updateAt updateTime 
+        c.create_at createTime, c.update_at updateTime 
       FROM comment c 
       LEFT JOIN users u
       ON c.from_uid = u.id

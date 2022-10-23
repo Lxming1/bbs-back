@@ -7,8 +7,8 @@ const redis = require('../utils/redis')
 
 class User {
   async create(ctx, next) {
-    const { name, email, password } = ctx.request.body
-    await service.create({ name, email, password })
+    const { email, password } = ctx.request.body
+    await service.create({ email, password })
     await redis.del(email)
     ctx.body = successMes('注册成功')
   }
@@ -24,7 +24,7 @@ class User {
   }
 
   async reactive(ctx) {
-    ctx.body = successMes('验证码发送成功，请及时查收')
+    ctx.body = successMes('验证码已发送，请及时查收')
   }
 
   async care(ctx) {

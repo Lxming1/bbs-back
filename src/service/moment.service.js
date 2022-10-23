@@ -8,24 +8,22 @@ const sqlFragment = `
       JSON_ARRAYAGG(CONCAT('${APP_HOST}:${APP_PORT}/moment/image/', file.filename)) 
       from file where m.id = file.moment_id
     ) images,
-    IF(count(l.id), JSON_ARRAYAGG(
-      JSON_OBJECT(
-        'id', l.id,
-        'name', l.name
-      )
-    ) , NULL) labels,
-    (select count(*) from moment_label ml where ml.moment_id = m.id) labelCount,
+    JSON_OBJECT(
+      'id', p.id,
+      'name', p.name
+    ) plate,
     (select count(*) from comment ml where ml.moment_id = m.id) commentCount,
     JSON_OBJECT(
       'id', u.id, 
-      'name', u.name, 
-      'avatarUrl', u.avatar_url
+      'email', u.email, 
+      'detailId', u.detail_id,
+      'createTime', u.create_at,
+      'updateTime', u.update_at
     ) author, 
-    m.createAt createTime, m.updateAt updataTime
+    m.create_at createTime, m.update_at updataTime
   FROM moment m
   LEFT JOIN users u ON m.user_id = u.id
-  LEFT JOIN moment_label ml ON ml.moment_id = m.id
-  LEFT JOIN label l ON l.id = ml.label_id
+  LEFT JOIN plate p ON m.plate_id = p.id 
 `
 
 class Moment {
@@ -101,11 +99,11 @@ module.exports = new Moment()
 //   JSON_OBJECT(
 //     'id', c.id, 'content', c.content,
 //     'user', JSON_OBJECT('id', cu.id, 'name', cu.name),
-//     'commentId', c.comment_id, 'createTime', c.createAt,
-//     'updateTime', c.updateAt
+//     'commentId', c.comment_id, 'createTime', c.create_at,
+//     'updateTime', c.update_at
 //   )
 // ) comments,
-//     m.createAt createTime, m.updateAt updataTime
+//     m.create_at createTime, m.update_at updataTime
 //   FROM moment m
 //   LEFT JOIN users u
 //   ON m.user_id = u.id
