@@ -3,7 +3,7 @@ const { APP_HOST, APP_PORT } = require('../app/config')
 
 const sqlFragment = `
   SELECT 
-    m.id id, m.content content,
+    m.id id, content, title,
     (select 
       JSON_ARRAYAGG(CONCAT('${APP_HOST}:${APP_PORT}/moment/image/', file.filename)) 
       from file where m.id = file.moment_id
@@ -63,22 +63,6 @@ class Moment {
   async del(momentId) {
     const statement = `delete from moment where id = ?`
     const [result] = await connection.execute(statement, [momentId])
-    return result
-  }
-
-  async hasLabel(label, momentId) {
-    let statement = `
-      select * from moment_label where moment_id = ? and label_id = ?
-    `
-    const result = await connection.execute(statement, [momentId, label])
-    return result[0].length ? true : false
-  }
-
-  async addLabels(label, momentId) {
-    let statement = `
-      insert into moment_label (label_id, moment_id) values (?, ?)
-    `
-    const [result] = await connection.execute(statement, [label, momentId])
     return result
   }
 

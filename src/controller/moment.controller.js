@@ -1,13 +1,6 @@
 const fs = require('fs')
 const { PICTURE_PATH } = require('../constants/file-types')
-const {
-  create,
-  del,
-  update,
-  addLabels,
-  hasLabel,
-  getPicInfo,
-} = require('../service/moment.service')
+const { create, del, update, getPicInfo } = require('../service/moment.service')
 const { successBody } = require('../utils/common')
 
 class Moment {
@@ -22,25 +15,12 @@ class Moment {
 
   // 查询一条动态
   async detail(ctx, next) {
-    // const { momentId } = ctx.params
-
-    // const result = await detail(momentId)
     const result = ctx.result
-
-    ctx.body = successBody(result[0])
+    ctx.body = successBody(result)
   }
 
   // 查询多条动态
   async list(ctx, next) {
-    // const { pagenum, pagesize } = ctx.query
-    // let result = null
-    // try {
-    //   result = await list(pagesize, pagenum)
-    // } catch (error) {
-    //   // 捕获参数错误导致报错
-    //   const err = new Error()
-    //   return ctx.app.emit('error', err, ctx)
-    // }
     const result = ctx.result
     ctx.body = successBody({
       total: result?.length ?? 0,
@@ -65,21 +45,6 @@ class Moment {
     const result = await del(momentId)
 
     ctx.body = successBody(result, '删除成功')
-  }
-
-  async addLabels(ctx) {
-    const { labels } = ctx
-    const { momentId } = ctx.params
-    const respBody = []
-    for (let item of labels) {
-      const isExist = await hasLabel(item.id, momentId)
-      // 如果没有给动态加此标签才加
-      if (!isExist) {
-        await addLabels(item.id, momentId)
-      }
-      respBody.push(item)
-    }
-    ctx.body = successBody(respBody)
   }
 
   async showPicture(ctx) {

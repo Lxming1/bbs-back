@@ -14,11 +14,11 @@ const setMultiUserInfo = async (ctx, next) => {
     if (!result) {
       ctx.result = []
     } else {
-      ctx.result = result.map(async (item) => {
-        const author = await resetDetail(item)
-        item.author = author
+      const promissArr = result.map(async (item) => {
+        item.author = await resetDetail(item)
         return item
       })
+      ctx.result = await Promise.all(promissArr)
     }
     await next()
   } catch (err) {
@@ -33,27 +33,40 @@ const setSingleUserInfo = async (ctx, next) => {
     if (!result) {
       ctx.result = null
     } else {
-      const author = await resetDetail(result)
-      result.author = author
+      result.author = await resetDetail(result)
       ctx.result = result
     }
     await next()
   } catch (err) {
     console.log(err)
   }
-
-  await next()
 }
 
 async function resetDetail(result) {
   const user = result.author
-  const userInfo = await getDetailInfo(user.detailId)
+  const userInfo = (await getDetailInfo(user.detailId))[0]
   if (userInfo.address_id) {
     const address = await getAddressInfo(userInfo.address_id)
-    userInfo.address = address
+    const { id, country, province, city } = address[0]
+    userInfo.address = { id, country, province, city }
+  } else {
+    userInfo.address = undefined
   }
-  delete result.author.detailId
-  return { ...result.author, ...userInfo }
+  const { id, email, createTime, updateTime } = result.author
+  const { name, age, gender, address, introduction, avatar_url } = userInfo
+
+  return {
+    id,
+    name,
+    age,
+    gender,
+    email,
+    address,
+    introduction,
+    avatarUrl: avatar_url,
+    createTime,
+    updateTime,
+  }
 }
 
 module.exports = {
