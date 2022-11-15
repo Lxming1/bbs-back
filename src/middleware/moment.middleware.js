@@ -1,9 +1,11 @@
-const { FORMAT_ERROR } = require('../constants/error-types')
-const { list, detail } = require('../service/moment.service')
-const { getDetailInfo, getAddressInfo } = require('../service/user.service')
+const fs = require('fs')
+const { getUserInfo } = require('../service/user.service')
+const { FORMAT_ERROR, PICTURE_PATH } = require('../constants/error-types')
+const { list, detail, getPicInfo, search } = require('../service/moment.service')
 
-const setMultiUserInfo = async (ctx, next) => {
+const getMultiMoment = async (ctx, next) => {
   const { pagenum, pagesize } = ctx.query
+  if (isNaN(parseInt(pagenum)) || isNaN(parseInt(pagesize))) return
   if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
     const err = new Error(FORMAT_ERROR)
     return ctx.app.emit('error', err, ctx)
@@ -15,7 +17,8 @@ const setMultiUserInfo = async (ctx, next) => {
       ctx.result = []
     } else {
       const promissArr = result.map(async (item) => {
-        item.author = await resetDetail(item)
+        item.author = await getUserInfo(item.author)
+        console.log(item.author)
         return item
       })
       ctx.result = await Promise.all(promissArr)
@@ -26,14 +29,14 @@ const setMultiUserInfo = async (ctx, next) => {
   }
 }
 
-const setSingleUserInfo = async (ctx, next) => {
+const getSingleMoment = async (ctx, next) => {
   const { momentId } = ctx.params
   try {
     const result = (await detail(momentId))[0]
     if (!result) {
       ctx.result = null
     } else {
-      result.author = await resetDetail(result)
+      result.author = await getUserInfo(result.author)
       ctx.result = result
     }
     await next()
@@ -42,35 +45,53 @@ const setSingleUserInfo = async (ctx, next) => {
   }
 }
 
-async function resetDetail(result) {
-  const user = result.author
-  const userInfo = (await getDetailInfo(user.detailId))[0]
-  if (userInfo.address_id) {
-    const address = await getAddressInfo(userInfo.address_id)
-    const { id, country, province, city } = address[0]
-    userInfo.address = { id, country, province, city }
-  } else {
-    userInfo.address = undefined
+const handlePicture = async (ctx, next) => {
+  try {
+    let { filename } = ctx.params
+    const { type } = ctx.query
+    const types = ['large', 'middle', 'small']
+    if (type) {
+      if (types.some((item) => item === type)) {
+        filename = filename + '-' + type
+      } else throw new Error()
+    }
+    try {
+      const result = await getPicInfo(filename)
+      ctx.response.set('content-type', result[0].mimetype)
+      ctx.result = fs.createReadStream(`${PICTURE_PATH}/${filename}`)
+      await next()
+    } catch (error) {
+      throw new Error()
+    }
+  } catch (error) {
+    const err = new Error()
+    ctx.app.emit('error', err, ctx)
   }
-  const { id, email, createTime, updateTime } = result.author
-  const { name, age, gender, address, introduction, avatar_url } = userInfo
+}
 
-  return {
-    id,
-    name,
-    age,
-    gender,
-    email,
-    address,
-    introduction,
-    avatarUrl: avatar_url,
-    createTime,
-    updateTime,
+const searchMoment = async (ctx, next) => {
+  const { content, pagenum, pagesize } = ctx.query
+  if (content === undefined) return
+  if (isNaN(parseInt(pagenum)) || isNaN(parseInt(pagesize))) return
+  if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
+    const err = new Error(FORMAT_ERROR)
+    return ctx.app.emit('error', err, ctx)
+  }
+  try {
+    const result = await search(content, pagenum, pagesize)
+    result.forEach(async (item) => {
+      item.author = await getUserInfo(item.author)
+    })
+    ctx.result = result
+    await next()
+  } catch (e) {
+    console.log(e)
   }
 }
 
 module.exports = {
-  // verifyQuery,
-  setMultiUserInfo,
-  setSingleUserInfo,
+  getMultiMoment,
+  getSingleMoment,
+  handlePicture,
+  searchMoment,
 }

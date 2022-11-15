@@ -8,6 +8,7 @@ const UNPERMISSION = '请先登录'
 const EMAIL_ERROR = '邮箱发送失败'
 const CODE_IS_INCORRECT = '验证码错误'
 const EXIST_CODE = '您在1分钟内已申请过验证码'
+const EXIST_COLLECT = '该收藏夹已存在'
 
 module.exports = {
   FORMAT_ERROR,
@@ -20,4 +21,5 @@ module.exports = {
   EMAIL_ERROR,
   CODE_IS_INCORRECT,
   EXIST_CODE,
+  EXIST_COLLECT,
 }

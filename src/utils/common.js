@@ -36,10 +36,13 @@ const verifyEmail = (email) => {
   return regEmail.test(email)
 }
 
+const getOffset = (pagenum, pagesize) => String((pagenum - 1) * pagesize)
+
 module.exports = {
   md5handle,
   successBody,
   successMes,
   randomFns,
   verifyEmail,
+  getOffset,
 }

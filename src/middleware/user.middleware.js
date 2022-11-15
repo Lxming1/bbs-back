@@ -2,19 +2,16 @@ const nodemailer = require('nodemailer')
 
 const errorTypes = require('../constants/error-types')
 const redis = require('../utils/redis')
-const { getUserByEmail } = require('../service/user.service')
+const {
+  getUserByEmail,
+  getCareFansList,
+  getDetailIdByUser,
+  createDeatilForUser,
+  updateDetailInfo,
+} = require('../service/user.service')
 const { md5handle, verifyEmail, randomFns } = require('../utils/common')
 const { MY_EMAIL, MY_EMAIL_PASS } = require('../app/config.js')
-
-// const verifyName = async (ctx, next) => {
-//   const { name } = ctx.request.body
-//   if (!name) {
-//     const err = new Error(errorTypes.NAME_IS_REQUIRED)
-//     return ctx.app.emit('error', err, ctx)
-//   }
-
-//   await next()
-// }
+const { getUserInfo } = require('../service/user.service')
 
 // 验证邮箱密码
 const verifyPass = async (ctx, next) => {
@@ -87,7 +84,7 @@ const sendEmail = async (ctx, next) => {
     subject: '验证你的电子邮件',
     html: `
       <p>你好！</p>
-      <p>您正在注册PYPBBS账号</p>
+      <p>您正在注册BBS账号</p>
       <p>你的验证码是：<strong style="color: #ff4e2a;">${code}</strong></p>
       <p>***该验证码1分钟内有效***</p>
     `,
@@ -95,7 +92,6 @@ const sendEmail = async (ctx, next) => {
 
   await transporter.sendMail(receiver, (err, info) => {
     if (err) {
-      console.log(err)
       const err = new Error(errorTypes.EMAIL_ERROR)
       return ctx.app.emit('error', err, ctx)
     }
@@ -117,11 +113,42 @@ const verifyCode = async (ctx, next) => {
   await next()
 }
 
+const setCareFansList = async (ctx, next) => {
+  const { url } = ctx.request
+  const isFans = url.indexOf('fans') !== -1 && url.indexOf('care') === -1
+  const { pagenum, pagesize } = ctx.query
+  if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
+    const err = new Error(FORMAT_ERROR)
+    return ctx.app.emit('error', err, ctx)
+  }
+  const { userId } = ctx.params
+  const fansIdList = await getCareFansList(userId, pagenum, pagesize, isFans)
+  const promiseArr = fansIdList.map(async (item) => await getUserInfo(item.id))
+  ctx.result = await Promise.all(promiseArr)
+  await next()
+}
+
+const handleUserInfo = async (ctx, next) => {
+  const { id: userId } = ctx.user
+  const { address, name, birthday, gender, introduction } = ctx.request.body
+  const { detailId } = await getDetailIdByUser(userId)
+  let result
+  // detailId为1说明用户是第一次编辑资料，需要想user_detail表插入数据
+  if (detailId === 1) {
+    result = await createDeatilForUser(userId, address, name, birthday, gender, introduction)
+  } else {
+    result = await updateDetailInfo(detailId, address, name, birthday, gender, introduction)
+  }
+  ctx.result = result
+  await next()
+}
+
 module.exports = {
-  // verifyName,
   verifyPass,
   verifyUEmail,
   handlePassword,
   sendEmail,
   verifyCode,
+  setCareFansList,
+  handleUserInfo,
 }

@@ -3,12 +3,7 @@ const { PUBLIC_KEY } = require('../app/config')
 
 const errorTypes = require('../constants/error-types')
 const { checkResource } = require('../service/auth.service')
-const {
-  getUserByEmail,
-  getAddressInfo,
-  getDetailInfo,
-  getUserAvatar,
-} = require('../service/user.service')
+const { getUserByEmail, getAddressInfo, getDetailInfo } = require('../service/user.service')
 const { md5handle } = require('../utils/common')
 
 const verifyLogin = async (ctx, next) => {
@@ -37,35 +32,6 @@ const verifyLogin = async (ctx, next) => {
   await next()
 }
 
-const setDetailInfo = async (ctx, next) => {
-  try {
-    const { id, email, create_at, update_at } = ctx.user
-    const { name, age, gender, introduction, avatar_url } = (await getDetailInfo(1))[0]
-    const { country, province, city } = (await getAddressInfo(1))[0]
-
-    const userInfo = {
-      id,
-      email,
-      name,
-      age,
-      gender,
-      introduction,
-      avatar_url,
-      create_at,
-      update_at,
-    }
-
-    ctx.user = {
-      ...userInfo,
-      address: { country, province, city },
-    }
-
-    await next()
-  } catch (e) {
-    console.log(e)
-  }
-}
-
 const verifyAuth = async (ctx, next) => {
   try {
     const authorization = ctx.headers.authorization
@@ -91,6 +57,7 @@ const verifyAuth = async (ctx, next) => {
   }
 }
 
+// 执行修改或删除操作时，判断是不是本人进行操作
 const verifyPermission = async (ctx, next) => {
   const [key] = Object.keys(ctx.params)
   const id = ctx.params[key]
@@ -109,7 +76,6 @@ const verifyPermission = async (ctx, next) => {
 
 module.exports = {
   verifyLogin,
-  setDetailInfo,
   verifyAuth,
   verifyPermission,
 }

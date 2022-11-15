@@ -7,6 +7,8 @@ const commentRouter = new Router({ prefix: '/comment' })
 
 // 发表评论
 commentRouter.post('/', verifyAuth, create)
+// 点赞评论
+commentRouter.post('/:commentId/praise', verifyAuth)
 // 回复评论
 commentRouter.post('/:commentId/reply', verifyAuth, verifyReply, reply)
 // 删除评论

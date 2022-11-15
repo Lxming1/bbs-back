@@ -9,12 +9,16 @@ const {
   CODE_IS_INCORRECT,
   MISSING_PARAMETER,
   FORMAT_ERROR,
+  EXIST_COLLECT,
 } = require('../constants/error-types')
 
 const errorHandle = (err, ctx) => {
   let status, errMessage, code
 
   switch (err.message) {
+    case EXIST_COLLECT:
+      status = 409
+      code = 2
     case MISSING_PARAMETER:
       status = 400 //Bad request
       code = 1
