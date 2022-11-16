@@ -9,7 +9,7 @@ const {
   createDeatilForUser,
   updateDetailInfo,
 } = require('../service/user.service')
-const { md5handle, verifyEmail, randomFns } = require('../utils/common')
+const { md5handle, verifyEmail, randomFns, isMyNaN } = require('../utils/common')
 const { MY_EMAIL, MY_EMAIL_PASS } = require('../app/config.js')
 const { getUserInfo } = require('../service/user.service')
 
@@ -117,6 +117,7 @@ const setCareFansList = async (ctx, next) => {
   const { url } = ctx.request
   const isFans = url.indexOf('fans') !== -1 && url.indexOf('care') === -1
   const { pagenum, pagesize } = ctx.query
+  if (isMyNaN(pagenum, pagesize)) return
   if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
     const err = new Error(FORMAT_ERROR)
     return ctx.app.emit('error', err, ctx)

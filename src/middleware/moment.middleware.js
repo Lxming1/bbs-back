@@ -2,10 +2,11 @@ const fs = require('fs')
 const { getUserInfo } = require('../service/user.service')
 const { FORMAT_ERROR, PICTURE_PATH } = require('../constants/error-types')
 const { list, detail, getPicInfo, search } = require('../service/moment.service')
+const { isMyNaN } = require('../utils/common')
 
 const getMultiMoment = async (ctx, next) => {
   const { pagenum, pagesize } = ctx.query
-  if (isNaN(parseInt(pagenum)) || isNaN(parseInt(pagesize))) return
+  if (isMyNaN(pagenum, pagesize)) return
   if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
     const err = new Error(FORMAT_ERROR)
     return ctx.app.emit('error', err, ctx)
@@ -72,7 +73,7 @@ const handlePicture = async (ctx, next) => {
 const searchMoment = async (ctx, next) => {
   const { content, pagenum, pagesize } = ctx.query
   if (content === undefined) return
-  if (isNaN(parseInt(pagenum)) || isNaN(parseInt(pagesize))) return
+  if (isMyNaN(pagenum, pagesize)) return
   if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
     const err = new Error(FORMAT_ERROR)
     return ctx.app.emit('error', err, ctx)

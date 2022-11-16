@@ -1,15 +1,11 @@
 const { FORMAT_ERROR } = require('../constants/error-types')
 const { getMomentListByPlate } = require('../service/plate.service')
+const { isMyNaN } = require('../utils/common')
 
 const getMomentByPlateId = async (ctx, next) => {
   const { pagenum, pagesize } = ctx.query
-  try {
-    if (!isNaN(parseInt(pagenum)) && !isNaN(parseInt(pagesize))) {
-      if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
-        throw new Error()
-      }
-    } else throw new Error()
-  } catch (e) {
+  if (isMyNaN(pagenum, pagesize)) return
+  if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
     const err = new Error(FORMAT_ERROR)
     return ctx.app.emit('error', err, ctx)
   }

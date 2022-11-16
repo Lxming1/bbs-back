@@ -8,18 +8,6 @@ class User {
     return result[0]
   }
 
-  async getDetailInfo(detailId) {
-    const statement = `select * from user_detail where id = ?`
-    const result = await connection.execute(statement, [detailId])
-    return result[0]
-  }
-
-  async getAddressInfo(addressId) {
-    const statement = `select * from address where id = ?`
-    const result = await connection.execute(statement, [addressId])
-    return result[0]
-  }
-
   async getUserByEmail(email) {
     const statement = `
       select 
@@ -31,33 +19,51 @@ class User {
   }
 
   async getUserInfo(id) {
-    const statement = `
-    select 
-      u.id, u.email, ud.name, ud.birthday, ud.gender, 
-      (select count(*) from care_fans where to_uid = id) fansCount,
-      (select count(*) from care_fans where from_uid = id) careCount,
-      JSON_OBJECT(
-        'id', ad.id, 
-        'province', ad.province,
-        'country', ad.country, 
-        'city', ad.city
-      ) address,
-      ud.introduction, ud.avatar_url, u.create_at createTime, u.update_at updateTime
-    from 
-      users u 
-    join 
-      user_detail ud 
-    on 
-      u.detail_id = ud.id 
-    join 
-      address ad 
-    on 
-      ad.id = ud.address_id
-    where 
-      u.id = ?
+    const conn = await connection.getConnection()
+    await conn.beginTransaction()
+    let statement = `
+      select 
+        u.id, u.email, ud.name, ud.birthday, ud.gender, 
+        (select count(*) from care_fans where to_uid = id) fansCount,
+        (select count(*) from care_fans where from_uid = id) careCount,
+        ud.address_id address, ud.introduction, ud.avatar_url, u.create_at createTime, u.update_at updateTime
+      from 
+        users u 
+      join 
+        user_detail ud 
+      on 
+        u.detail_id = ud.id 
+      join 
+        address ad 
+      on 
+        ad.id = ud.address_id
+      where 
+        u.id = ?
     `
-    const [result] = await connection.execute(statement, [id])
-    return result[0]
+    let result
+    try {
+      result = (await connection.execute(statement, [id]))[0]
+    } catch (e) {
+      console.log(e)
+      await conn.rollback()
+    }
+    const addressId = result[0].address
+    if (addressId < 100) {
+      statement = `select id, name province from address where id = ?`
+    } else {
+      statement = `
+        select a2.id id, a1.name province, a2.name city from address a1 join address a2 on a2.id = ? and a1.id = a2.pid 
+      `
+    }
+    try {
+      const [address] = await connection.execute(statement, [addressId])
+      await conn.commit()
+      result[0].address = address[0]
+      return result[0]
+    } catch (e) {
+      console.log(e)
+      await conn.rollback()
+    }
   }
 
   async getAvatarInfo(userId) {

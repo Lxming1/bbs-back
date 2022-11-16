@@ -38,6 +38,8 @@ const verifyEmail = (email) => {
 
 const getOffset = (pagenum, pagesize) => String((pagenum - 1) * pagesize)
 
+const isMyNaN = (...num) => num.some((item) => isNaN(item))
+
 module.exports = {
   md5handle,
   successBody,
@@ -45,4 +47,5 @@ module.exports = {
   randomFns,
   verifyEmail,
   getOffset,
+  isMyNaN,
 }

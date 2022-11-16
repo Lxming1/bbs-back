@@ -1,32 +1,27 @@
+const { getOffset } = require('../utils/common')
 const connection = require('../utils/database')
 class Comment {
-  async create(content, momentId, fromUid, toUid) {
+  async create(content, momentId, userId) {
     const statement = `
       insert into comment 
-        (content, moment_id, from_uid, to_uids) 
+        (content, moment_id, user_id) 
       values (?,?,?)
     `
-    const [result] = await connection.execute(statement, [content, momentId, fromUid, toUid])
+    const [result] = await connection.execute(statement, [content, momentId, userId])
     return result
   }
 
-  async reply(content, momentId, fromUid, toUid, commentId) {
+  async reply(content, momentId, userId, commentId) {
     const statement = `
       insert into comment 
         (content, moment_id, user_id, comment_id) 
       values (?,?,?,?)
     `
-    const [result] = await connection.execute(statement, [
-      content,
-      momentId,
-      fromUid,
-      toUid,
-      commentId,
-    ])
+    const [result] = await connection.execute(statement, [content, momentId, userId, commentId])
     return result
   }
 
-  async verifyReply(momentId, commentId) {
+  async verify(momentId, commentId) {
     // 传入的动态存在对应的评论
     const statement = `
       select * from comment where moment_id = ? and id = ?
@@ -41,21 +36,32 @@ class Comment {
     return result
   }
 
-  async list(momentId) {
+  async list(momentId, pagenum, pagesize) {
     const statement = `
       SELECT 
-        c.id id, c.content content, c.comment_id commentId,
-        JSON_OBJECT('id', u.id, 'name', u.name, 'avatarUrl', u.avatar_url) author,
-        JSON_OBJECT('id', u1.id, 'name', u1.name, 'avatarUrl', u1.avatar_url) object,
+        c.id id, c.content content, c.comment_id commentId, c.user_id author,
         c.create_at createTime, c.update_at updateTime 
       FROM comment c 
-      LEFT JOIN users u
-      ON c.from_uid = u.id
-      LEFT JOIN users u1
-      ON c.to_uid = u1.id
       where c.moment_id = ?
+      limit ?, ?
     `
-    const [result] = await connection.execute(statement, [momentId])
+    const [result] = await connection.execute(statement, [
+      momentId,
+      getOffset(pagenum, pagesize),
+      pagesize,
+    ])
+    return result
+  }
+
+  async praise(userId, momentId, commentId) {
+    const statement = `insert into praise (moment_id, user_id, comment_id) values(?, ?, ?)`
+    const [result] = await connection.execute(statement, [momentId, userId, commentId])
+    return result
+  }
+
+  async cancelPraise(userId, momentId, commentId) {
+    const statement = `delete from praise where moment_id = ? and user_id = ? and comment_id = ?`
+    const [result] = await connection.execute(statement, [momentId, userId, commentId])
     return result
   }
 }

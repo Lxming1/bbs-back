@@ -1,5 +1,5 @@
-const { create, reply, del, list } = require('../service/comment.service')
-const { successBody } = require('../utils/common')
+const { create, reply, del, praise, cancelPraise } = require('../service/comment.service')
+const { successBody, isMyNaN } = require('../utils/common')
 
 class Comment {
   async create(ctx) {
@@ -14,7 +14,7 @@ class Comment {
     const { commentId } = ctx.params
     const userId = ctx.user.id
     const result = await reply(content, momentId, userId, commentId)
-    ctx.body = successBody(result, '回复发表成功')
+    ctx.body = successBody(result, '回复评论成功')
   }
 
   async del(ctx) {
@@ -24,18 +24,29 @@ class Comment {
   }
 
   async list(ctx) {
-    const { momentId } = ctx.query
-    if (!momentId) {
-      const err = new Error()
-      return ctx.app.emit('error', err, ctx)
-    }
-
-    const result = await list(momentId)
-    const resp = {
+    const result = ctx.result
+    ctx.body = successBody({
       total: result.length,
       comments: result,
-    }
-    ctx.body = successBody(resp)
+    })
+  }
+
+  async pariseComment(ctx) {
+    const { commentId } = ctx.params
+    const { momentId } = ctx.request.body
+    const { id } = ctx.user
+    if (isMyNaN(commentId, momentId)) return
+    const result = await praise(id, momentId, commentId)
+    ctx.body = successBody(result, '点赞成功')
+  }
+
+  async cancelPariseComment(ctx) {
+    const { commentId } = ctx.params
+    const { momentId } = ctx.request.body
+    const { id } = ctx.user
+    if (isMyNaN(commentId, momentId)) return
+    const result = await cancelPraise(id, momentId, commentId)
+    ctx.body = successBody(result, '取消点赞成功')
   }
 }
 

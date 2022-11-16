@@ -3,7 +3,7 @@ const { PUBLIC_KEY } = require('../app/config')
 
 const errorTypes = require('../constants/error-types')
 const { checkResource } = require('../service/auth.service')
-const { getUserByEmail, getAddressInfo, getDetailInfo } = require('../service/user.service')
+const { getUserByEmail } = require('../service/user.service')
 const { md5handle } = require('../utils/common')
 
 const verifyLogin = async (ctx, next) => {
