@@ -1,3 +1,4 @@
+const { getOffset } = require('../utils/common')
 const connection = require('../utils/database')
 class Collect {
   async create(uid, name, status) {
@@ -28,6 +29,42 @@ class Collect {
     const statement = `delete from collect_detail where moment_id = ? and collect_id = ?`
     const [result] = await connection.execute(statement, [momentId, collectId])
     return result
+  }
+
+  async collectDetail(collectId, pagenum, pagesize) {
+    const statement = `
+      SELECT 
+        m.id id, content, title,
+        (select 
+          JSON_ARRAYAGG(CONCAT('${APP_HOST}:${APP_PORT}/moment/image/', file.filename)) 
+          from file where m.id = file.moment_id
+        ) images,
+        JSON_OBJECT(
+          'id', p.id,
+          'name', p.name
+        ) plate,
+        (select count(*) from comment ml where ml.moment_id = m.id) commentCount,
+        m.user_id author, 
+        m.create_at createTime, m.update_at updataTime
+      FROM moment m
+      LEFT JOIN plate p 
+      ON m.plate_id = p.id 
+      JOIN collect_detail cd 
+      ON cd.moment_id = m.id
+      WHERE cd.collect_id = ? limit ?, ?
+    `
+    const [result] = await connection.execute(statement, [
+      collectId,
+      getOffset(pagenum, pagesize),
+      pagesize,
+    ])
+    return result
+  }
+
+  async getCollectStatus(collectId) {
+    const statement = `select status from collect where id = ?`
+    const [result] = await connection.execute(statement, [collectId])
+    return result[0]
   }
 }
 

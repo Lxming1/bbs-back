@@ -1,5 +1,14 @@
-const { create, del, update, praise, cancelPraise } = require('../service/moment.service')
+const {
+  create,
+  del,
+  update,
+  praise,
+  cancelPraise,
+  getPicInfo,
+} = require('../service/moment.service')
 const { successBody } = require('../utils/common')
+const { PICTURE_PATH } = require('../constants/file-types')
+const fs = require('fs')
 
 class Moment {
   async create(ctx) {
@@ -47,7 +56,22 @@ class Moment {
   }
 
   async showPicture(ctx) {
-    ctx.body = ctx.result
+    let { filename } = ctx.params
+    const { type } = ctx.query
+    const types = ['large', 'middle', 'small']
+    let realFileName = ''
+    if (type) {
+      if (types.some((item) => item === type)) {
+        realFileName = filename + '-' + type
+      } else return
+    }
+    try {
+      const result = await getPicInfo(filename)
+      ctx.response.set('content-type', result[0].mimetype)
+      ctx.body = fs.createReadStream(`${PICTURE_PATH}/${realFileName}`)
+    } catch (error) {
+      console.log(e)
+    }
   }
 
   async praiseMoment(ctx) {

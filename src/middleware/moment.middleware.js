@@ -1,7 +1,7 @@
 const fs = require('fs')
 const { getUserInfo } = require('../service/user.service')
-const { FORMAT_ERROR, PICTURE_PATH } = require('../constants/error-types')
-const { list, detail, getPicInfo, search } = require('../service/moment.service')
+const { FORMAT_ERROR } = require('../constants/error-types')
+const { list, detail, search } = require('../service/moment.service')
 const { isMyNaN } = require('../utils/common')
 
 const getMultiMoment = async (ctx, next) => {
@@ -46,30 +46,6 @@ const getSingleMoment = async (ctx, next) => {
   }
 }
 
-const handlePicture = async (ctx, next) => {
-  try {
-    let { filename } = ctx.params
-    const { type } = ctx.query
-    const types = ['large', 'middle', 'small']
-    if (type) {
-      if (types.some((item) => item === type)) {
-        filename = filename + '-' + type
-      } else throw new Error()
-    }
-    try {
-      const result = await getPicInfo(filename)
-      ctx.response.set('content-type', result[0].mimetype)
-      ctx.result = fs.createReadStream(`${PICTURE_PATH}/${filename}`)
-      await next()
-    } catch (error) {
-      throw new Error()
-    }
-  } catch (error) {
-    const err = new Error()
-    ctx.app.emit('error', err, ctx)
-  }
-}
-
 const searchMoment = async (ctx, next) => {
   const { content, pagenum, pagesize } = ctx.query
   if (content === undefined) return
@@ -93,6 +69,5 @@ const searchMoment = async (ctx, next) => {
 module.exports = {
   getMultiMoment,
   getSingleMoment,
-  handlePicture,
   searchMoment,
 }

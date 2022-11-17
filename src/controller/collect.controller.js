@@ -5,8 +5,9 @@ const {
   update,
   createDetail,
   cancel,
+  collectDetail,
 } = require('../service/collect.service')
-const { successBody } = require('../utils/common')
+const { successBody, isMyNaN } = require('../utils/common')
 
 class Collect {
   async create(ctx) {
@@ -35,8 +36,8 @@ class Collect {
   }
 
   async showCollectList(ctx) {
-    const { id } = ctx.user
-    const result = await getCollectByUID(id)
+    const { uid } = ctx.query
+    const result = await getCollectByUID(uid)
     ctx.body = successBody(result)
   }
 
@@ -61,6 +62,10 @@ class Collect {
     } catch (e) {
       console.log(e)
     }
+  }
+
+  async getCollectDetail(ctx) {
+    ctx.body = successBody(ctx.result, '获取成功')
   }
 }
 
