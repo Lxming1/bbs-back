@@ -7,6 +7,7 @@ const {
   cancelCare,
   showCareFansList,
   edit,
+  showUserInfo,
 } = require('../controller/user.controller')
 const { verifyAuth } = require('../middleware/auth.middleware')
 const {
@@ -30,12 +31,10 @@ userRouter.get('/:userId/avatar', showAvatar)
 userRouter.post('/:userId/care', verifyAuth, care)
 // 取消关注
 userRouter.delete('/:userId/care', verifyAuth, cancelCare)
-
-const careFansFn = [verifyAuth, setCareFansList, showCareFansList]
-// 获取粉丝列表
-userRouter.get('/:userId/fans', ...careFansFn)
-// 获取以关注列表
-userRouter.get('/:userId/care', ...careFansFn)
+// 获取用户个人信息
+userRouter.get('/:userId/detail', showUserInfo)
+// 获取粉丝或关注列表
+userRouter.get('/:userId/:type', setCareFansList, showCareFansList)
 // 编辑资料
 userRouter.post('/edit', verifyAuth, handleUserInfo, edit)
 

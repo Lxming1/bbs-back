@@ -1,4 +1,3 @@
-const fs = require('fs')
 const { getUserInfo } = require('../service/user.service')
 const { FORMAT_ERROR } = require('../constants/error-types')
 const { list, detail, search } = require('../service/moment.service')

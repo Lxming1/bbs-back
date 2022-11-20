@@ -2,14 +2,8 @@ const nodemailer = require('nodemailer')
 
 const errorTypes = require('../constants/error-types')
 const redis = require('../utils/redis')
-const {
-  getUserByEmail,
-  getCareFansList,
-  getDetailIdByUser,
-  createDeatilForUser,
-  updateDetailInfo,
-} = require('../service/user.service')
-const { md5handle, verifyEmail, randomFns, isMyNaN } = require('../utils/common')
+const { getUserByEmail, getCareFansList, updateDetailInfo } = require('../service/user.service')
+const { md5handle, verifyEmail, randomFns, isMyNaN, verifyName } = require('../utils/common')
 const { MY_EMAIL, MY_EMAIL_PASS } = require('../app/config.js')
 const { getUserInfo } = require('../service/user.service')
 
@@ -29,6 +23,10 @@ const verifyPass = async (ctx, next) => {
 // 加密密码
 const handlePassword = async (ctx, next) => {
   const { password } = ctx.request.body
+  if (!verifyPass(password)) {
+    const err = new Error(errorTypes.FORMAT_ERROR)
+    return ctx.app.emit('error', err, ctx)
+  }
   ctx.request.body.password = md5handle(password)
   await next()
 }
@@ -42,7 +40,7 @@ const verifyUEmail = async (ctx, next) => {
   }
   // 验证邮箱有效性
   if (!verifyEmail(email)) {
-    const err = new Error(errorTypes.EMAIL_IS_INCORRECT)
+    const err = new Error(errorTypes.FORMAT_ERROR)
     return ctx.app.emit('error', err, ctx)
   }
 
@@ -114,15 +112,15 @@ const verifyCode = async (ctx, next) => {
 }
 
 const setCareFansList = async (ctx, next) => {
-  const { url } = ctx.request
-  const isFans = url.indexOf('fans') !== -1 && url.indexOf('care') === -1
   const { pagenum, pagesize } = ctx.query
   if (isMyNaN(pagenum, pagesize)) return
   if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
     const err = new Error(FORMAT_ERROR)
     return ctx.app.emit('error', err, ctx)
   }
-  const { userId } = ctx.params
+  const { userId, type } = ctx.params
+  if (!['care', 'fans'].includes || !userId) return
+  const isFans = type === 'fans'
   const fansIdList = await getCareFansList(userId, pagenum, pagesize, isFans)
   const promiseArr = fansIdList.map(async (item) => await getUserInfo(item.id))
   ctx.result = await Promise.all(promiseArr)
@@ -132,14 +130,11 @@ const setCareFansList = async (ctx, next) => {
 const handleUserInfo = async (ctx, next) => {
   const { id: userId } = ctx.user
   const { address, name, birthday, gender, introduction } = ctx.request.body
-  const { detailId } = await getDetailIdByUser(userId)
-  let result
-  // detailId为1说明用户是第一次编辑资料，需要想user_detail表插入数据
-  if (detailId === 1) {
-    result = await createDeatilForUser(userId, address, name, birthday, gender, introduction)
-  } else {
-    result = await updateDetailInfo(detailId, address, name, birthday, gender, introduction)
+  if (!verifyName(name)) {
+    const err = new Error(errorTypes.FORMAT_ERROR)
+    return ctx.app.emit('error', err, ctx)
   }
+  const result = await updateDetailInfo(userId, address, name, birthday, gender, introduction)
   ctx.result = result
   await next()
 }

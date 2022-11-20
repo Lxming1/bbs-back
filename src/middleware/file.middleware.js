@@ -25,10 +25,7 @@ const rmExistAvatar = async (ctx, next) => {
   const avatarMes = await currentAvatar(id)
   // 添加头像前有头像则删除之
   if (avatarMes.length) {
-    // 删除头像表的数据
-    await rmAvatar(id)
-    // 删除本地图片
-    await fs.promises.rm(`${AVATAR_PATH}/${avatarMes[0].filename}`)
+    await Promise.all([rmAvatar(id), fs.promises.rm(`${AVATAR_PATH}/${avatarMes[0].filename}`)])
   }
 
   await next()

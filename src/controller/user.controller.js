@@ -1,16 +1,16 @@
 const fs = require('fs')
 const { AVATAR_PATH } = require('../constants/file-types')
-const { getAvatarInfo, care, cancelCare } = require('../service/user.service')
-const service = require('../service/user.service')
+const { getAvatarInfo, care, cancelCare, create, getUserInfo } = require('../service/user.service')
 const { successMes, successBody } = require('../utils/common')
 const redis = require('../utils/redis')
 
 class User {
-  async create(ctx, next) {
+  async create(ctx) {
     const { email, password } = ctx.request.body
-    await service.create({ email, password })
+    const userId = await create({ email, password })
+    const result = await getUserInfo(userId)
     await redis.del(email)
-    ctx.body = successMes('注册成功')
+    ctx.body = successBody(result, '注册成功')
   }
 
   // 展示图片
@@ -55,6 +55,17 @@ class User {
 
   async edit(ctx) {
     ctx.body = successBody(ctx.result, '编辑成功')
+  }
+
+  async showUserInfo(ctx) {
+    const { userId } = ctx.params
+    if (!userId) return
+    try {
+      const result = await getUserInfo(userId)
+      ctx.body = successBody(result)
+    } catch (e) {
+      console.log(e)
+    }
   }
 }
 

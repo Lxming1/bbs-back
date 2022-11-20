@@ -35,12 +35,22 @@ const verifyEmail = (email) => {
     /^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/ //验证邮箱正则
   return regEmail.test(email)
 }
+const verifyPass = (pass) => {
+  const regPass = /^[0-9a-zA-Z_]{6,16}$/
+  return regPass.test(pass)
+}
+const verifyName = (name) => {
+  const regName = /^[\u4e00-\u9fa5a-zA-Z0-9_]{1,16}$/
+  return regName.test(name)
+}
 
 const getOffset = (pagenum, pagesize) => String((pagenum - 1) * pagesize)
 
 const isMyNaN = (...num) => num.some((item) => isNaN(item))
 
 module.exports = {
+  verifyName,
+  verifyPass,
   md5handle,
   successBody,
   successMes,

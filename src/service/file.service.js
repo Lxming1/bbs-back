@@ -20,11 +20,11 @@ class FileService {
     return result
   }
 
-  async savaAvatar(avatarUrl, detailId) {
+  async savaAvatar(avatarUrl, id) {
     const statement = `
-      update user_detail set avatar_url = ? where id = ?
+      update user_detail set avatar_url = ? where user_id = ?
     `
-    const [result] = await connection.execute(statement, [avatarUrl, detailId])
+    const [result] = await connection.execute(statement, [avatarUrl, id])
     return result
   }
 

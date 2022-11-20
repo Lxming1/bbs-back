@@ -3,66 +3,66 @@ const connection = require('../utils/database')
 
 class User {
   async create({ email, password }) {
-    let statement = `insert into users (email, password) values (?, ?)`
-    const result = await connection.execute(statement, [email, password])
-    return result[0]
+    const conn = await connection.getConnection()
+    await conn.beginTransaction()
+    let statement, result
+    try {
+      statement = `insert into users (email, password) values (?, ?)`
+      result = await connection.execute(statement, [email, password])
+    } catch (e) {
+      console.log(e)
+      return await conn.rollback()
+    }
+    const userId = result[0].insertId
+    try {
+      statement = `insert into user_detail (name, user_id) values(?, ?)`
+      result = await connection.execute(statement, [email, userId])
+      await conn.commit()
+      return userId
+    } catch (e) {
+      console.log(e)
+      await conn.rollback()
+    }
   }
 
   async getUserByEmail(email) {
     const statement = `
       select 
         id, email, password
-      from users where email = ?
+      from 
+        users 
+      where 
+        email = ? and status = 0
     `
     const result = await connection.execute(statement, [email])
     return result[0]
   }
 
   async getUserInfo(id) {
-    const conn = await connection.getConnection()
-    await conn.beginTransaction()
-    let statement = `
+    const statement = `
       select 
-        u.id, u.email, ud.name, ud.birthday, ud.gender, 
+        u.id, u.email, ud.name, ud.birthday, ud.gender,
+        if(ud.address_id=null, null, (select JSON_OBJECT(
+          'id', a1.id,
+          'children', a1.name,
+          'parent', a2.name
+        ) from address a1 left join address a2 on a1.pid = a2.id where a1.id = ud.address_id)) address,
         (select count(*) from care_fans where to_uid = id) fansCount,
         (select count(*) from care_fans where from_uid = id) careCount,
-        ud.address_id address, ud.introduction, ud.avatar_url, u.create_at createTime, u.update_at updateTime
+        ud.introduction, ud.avatar_url, u.create_at createTime, u.update_at updateTime
       from 
-        users u 
+        users u
       join 
         user_detail ud 
       on 
-        u.detail_id = ud.id 
-      join 
-        address ad 
-      on 
-        ad.id = ud.address_id
-      where 
-        u.id = ?
+        ud.user_id = u.id
+      where u.id = ?
     `
-    let result
     try {
-      result = (await connection.execute(statement, [id]))[0]
-    } catch (e) {
-      console.log(e)
-      await conn.rollback()
-    }
-    const addressId = result[0].address
-    if (addressId < 100) {
-      statement = `select id, name province from address where id = ?`
-    } else {
-      statement = `
-        select a2.id id, a1.name province, a2.name city from address a1 join address a2 on a2.id = ? and a1.id = a2.pid 
-      `
-    }
-    try {
-      const [address] = await connection.execute(statement, [addressId])
-      await conn.commit()
-      result[0].address = address[0]
+      const result = (await connection.execute(statement, [id]))[0]
       return result[0]
     } catch (e) {
       console.log(e)
-      await conn.rollback()
     }
   }
 
@@ -103,49 +103,7 @@ class User {
     return result
   }
 
-  async getDetailIdByUser(uid) {
-    const statement = `select detail_id detailId from users where id = ?`
-    const [result] = await connection.execute(statement, [uid])
-    return result[0]
-  }
-
-  async createDeatilForUser(uid, addressId, name, birthday, gender, introduction) {
-    const conn = await connection.getConnection()
-    await conn.beginTransaction()
-    let statement
-    let result
-    try {
-      statement = `insert into user_detail (name, birthday, gender, introduction, address_id) values(?,?,?,?,?)`
-      result = await connection.execute(statement, [
-        name,
-        birthday,
-        gender,
-        introduction,
-        addressId,
-      ])
-    } catch (e) {
-      console.log(e)
-      return await conn.rollback()
-    }
-
-    const detailId = result[0].insertId
-    try {
-      statement = `update users set detail_id = ? where id = ?`
-      result = await connection.execute(statement, [detailId, uid])
-    } catch (e) {
-      console.log(e)
-      return await conn.rollback()
-    }
-    try {
-      await conn.commit()
-    } catch (e) {
-      console.log(e)
-      return await conn.rollback()
-    }
-    return [result]
-  }
-
-  async updateDetailInfo(detailId, addressId, name, birthday, gender, introduction) {
+  async updateDetailInfo(userId, addressId, name, birthday, gender, introduction) {
     const statement = `
       update 
         user_detail 
@@ -153,16 +111,15 @@ class User {
         name = ?, birthday = ?, gender = ?, 
         introduction = ?, address_id = ? 
       where 
-        id = ?
+        user_id = ?
     `
-
     const [result] = await connection.execute(statement, [
       name,
       birthday,
       gender,
       introduction,
       addressId,
-      detailId,
+      userId,
     ])
     return result
   }
