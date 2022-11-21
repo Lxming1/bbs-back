@@ -64,6 +64,8 @@ class Moment {
       if (types.some((item) => item === type)) {
         realFileName = filename + '-' + type
       } else return
+    } else {
+      realFileName = filename
     }
     try {
       const result = await getPicInfo(filename)

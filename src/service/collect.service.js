@@ -1,5 +1,6 @@
 const { getOffset } = require('../utils/common')
 const connection = require('../utils/database')
+const { APP_HOST, APP_PORT } = require('../app/config')
 class Collect {
   async create(uid, name, status) {
     const statement = `insert into collect (user_id, name, status) value(?,?,?)`
@@ -36,7 +37,7 @@ class Collect {
       SELECT 
         m.id id, content, title,
         (select 
-          JSON_ARRAYAGG(CONCAT('${APP_HOST}:${APP_PORT}/moment/image/', file.filename)) 
+          JSON_ARRAYAGG(CONCAT('${APP_HOST}:${APP_PORT}/moment/image/', file.filename))
           from file where m.id = file.moment_id
         ) images,
         JSON_OBJECT(

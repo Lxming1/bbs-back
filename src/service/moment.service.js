@@ -100,7 +100,7 @@ class Moment {
     try {
       statement = `
         select 
-          ud.user_id uid, ud.name name 
+          ud.user_id uid
         from 
           user_detail ud 
         join 
@@ -116,16 +116,15 @@ class Moment {
       await conn.rollback()
     }
     try {
-      const { uid: toUid, name } = result[0][0]
+      const { uid: toUid } = result[0][0]
       if (toUid === uid) return res[0]
       const statement = `
         insert into notices 
-          (content, moment_id, from_uid, to_uid, type) 
+          (moment_id, from_uid, to_uid, type) 
         values
-          (?, ?, ?, ?, ?)
+          (?, ?, ?, ?)
       `
-      const content = `${name}点赞了你的动态`
-      res = await connection.execute(statement, [content, momentId, uid, toUid, 0])
+      res = await connection.execute(statement, [momentId, uid, toUid, 0])
       await conn.commit()
     } catch (e) {
       console.log(e)

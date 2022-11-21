@@ -4,26 +4,108 @@ class Comment {
   /**
    * @Author: Lxming
    * @Date: 2022-11-21 00:11:16
-   * @Description: 差评论动态、回复评论、收藏的notice
+   * @Description: 回复评论、收藏的notice
    */
-  async create(content, momentId, userId) {
-    const statement = `
-      insert into comment 
-        (content, moment_id, user_id) 
-      values (?,?,?)
-    `
-    const [result] = await connection.execute(statement, [content, momentId, userId])
-    return result
+  async create(content, momentId, uid) {
+    const conn = await connection.getConnection()
+    await conn.beginTransaction()
+    let statement, result, res
+    try {
+      statement = `
+        insert into comment 
+          (content, moment_id, user_id) 
+        values (?,?,?)
+      `
+      res = await connection.execute(statement, [content, momentId, uid])
+    } catch (e) {
+      console.log(e)
+      await conn.rollback()
+    }
+    try {
+      statement = `
+        select 
+          ud.user_id uid
+        from 
+          user_detail ud 
+        join 
+          moment m 
+        on 
+          m.user_id = ud.user_id 
+        where 
+          m.id = ?
+      `
+      result = await connection.execute(statement, [momentId])
+    } catch (e) {
+      console.log(e)
+      await conn.rollback()
+    }
+    try {
+      const { uid: toUid } = result[0][0]
+      if (toUid === uid) return res[0]
+      const statement = `
+        insert into notices 
+          (moment_id, from_uid, to_uid, type) 
+        values
+          (?, ?, ?, ?)
+      `
+      res = await connection.execute(statement, [momentId, uid, toUid, 1])
+      await conn.commit()
+    } catch (e) {
+      console.log(e)
+      await conn.rollback()
+    }
+    return res[0]
   }
 
-  async reply(content, momentId, userId, commentId) {
-    const statement = `
+  async reply(content, momentId, uid, commentId) {
+    const conn = await connection.getConnection()
+    await conn.beginTransaction()
+    let statement, result, res
+    try {
+      statement = `
       insert into comment 
         (content, moment_id, user_id, comment_id) 
       values (?,?,?,?)
     `
-    const [result] = await connection.execute(statement, [content, momentId, userId, commentId])
-    return result
+      res = await connection.execute(statement, [content, momentId, uid, commentId])
+    } catch (e) {
+      console.log(e)
+      conn.rollback()
+    }
+    try {
+      statement = `
+        select 
+          ud.user_id uid
+        from 
+          user_detail ud 
+        join 
+          moment m 
+        on 
+          m.user_id = ud.user_id 
+        where 
+          m.id = ?
+      `
+      result = await connection.execute(statement, [momentId])
+    } catch (e) {
+      console.log(e)
+      await conn.rollback()
+    }
+    try {
+      const { uid: toUid } = result[0][0]
+      if (toUid === uid) return res[0]
+      const statement = `
+        insert into notices 
+          (moment_id, comment_id, from_uid, to_uid, type) 
+        values
+          (?, ?, ?, ?, ?)
+      `
+      res = await connection.execute(statement, [momentId, commentId, uid, toUid, 1])
+      await conn.commit()
+    } catch (e) {
+      console.log(e)
+      await conn.rollback()
+    }
+    return res[0]
   }
 
   async verify(momentId, commentId) {
@@ -72,7 +154,7 @@ class Comment {
     try {
       statement = `
         select 
-          ud.user_id uid, ud.name name 
+          ud.user_id uid
         from 
           user_detail ud 
         join 
@@ -88,16 +170,15 @@ class Comment {
       await conn.rollback()
     }
     try {
-      const { uid: toUid, name } = result[0][0]
+      const { uid: toUid } = result[0][0]
       if (toUid === userId) return res[0]
       const statement = `
         insert into notices 
-          (content, moment_id, comment_id, from_uid, to_uid, type) 
+          (moment_id, comment_id, from_uid, to_uid, type) 
         values
-          (?, ?, ?, ?, ?, ?)
+          (?, ?, ?, ?, ?)
       `
-      const content = `${name}点赞了你的评论`
-      res = await connection.execute(statement, [content, momentId, commentId, userId, toUid, 0])
+      res = await connection.execute(statement, [momentId, commentId, userId, toUid, 0])
       await conn.commit()
     } catch (e) {
       console.log(e)
@@ -107,7 +188,11 @@ class Comment {
   }
 
   async cancelPraise(userId, momentId, commentId) {
-    const statement = `delete from praise where moment_id = ? and user_id = ? and comment_id = ?`
+    const statement = `
+      delete from 
+        praise 
+      where 
+        moment_id = ? and user_id = ? and comment_id = ?`
     const [result] = await connection.execute(statement, [momentId, userId, commentId])
     return result
   }
