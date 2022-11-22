@@ -4,7 +4,7 @@ const path = require('path')
 const jimp = require('jimp')
 
 const { AVATAR_PATH, PICTURE_PATH } = require('../constants/file-types')
-const { currentAvatar, rmAvatar } = require('../service/file.service')
+const { currentAvatar, rmAvatar, getPicByMoment } = require('../service/file.service')
 
 // 配置上传位置
 const upload = Multer({
@@ -24,11 +24,32 @@ const rmExistAvatar = async (ctx, next) => {
   // 查询用户当前是否有头像
   const avatarMes = await currentAvatar(id)
   // 添加头像前有头像则删除之
-  if (avatarMes.length) {
-    await Promise.all([rmAvatar(id), fs.promises.rm(`${AVATAR_PATH}/${avatarMes[0].filename}`)])
-  }
+  avatarMes.length &&
+    (await Promise.all([rmAvatar(id), fs.promises.rm(`${AVATAR_PATH}/${avatarMes[0].filename}`)]))
 
   await next()
+}
+
+const rmPicIfMomentHas = async (ctx, next) => {
+  const { momentId } = ctx.params
+  const { id } = ctx.user
+  try {
+    const result = await getPicByMoment(momentId, id)
+    const promiseArr = result.map(async (item) => {
+      const picPath = `${PICTURE_PATH}/${item.filename}`
+      const promiseArr = [
+        fs.promises.rm(picPath),
+        fs.promises.rm(`${picPath}-large`),
+        fs.promises.rm(`${picPath}-middle`),
+        fs.promises.rm(`${picPath}-small`),
+      ]
+      await Promise.all(promiseArr)
+    })
+    await Promise.all(promiseArr)
+    await next()
+  } catch (e) {
+    console.log(e)
+  }
 }
 
 const resizePicture = async (ctx, next) => {
@@ -48,5 +69,6 @@ module.exports = {
   handleAvatar,
   handlePicture,
   rmExistAvatar,
+  rmPicIfMomentHas,
   resizePicture,
 }

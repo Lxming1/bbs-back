@@ -43,6 +43,12 @@ class FileService {
     ])
     return result
   }
+
+  async getPicByMoment(momentId, uid) {
+    const statement = `select * from file  where moment_id = ? and user_id = ?`
+    const [result] = await connection.execute(statement, [momentId, uid])
+    return result
+  }
 }
 
 module.exports = new FileService()

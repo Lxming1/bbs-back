@@ -11,7 +11,6 @@ const getMomentByPlateId = async (ctx, next) => {
   }
 
   const { plateId } = ctx.params
-  console.log(plateId)
   try {
     const result = await getMomentListByPlate(plateId, pagenum, pagesize)
     ctx.result = result

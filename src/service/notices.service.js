@@ -2,9 +2,9 @@ const { getOffset } = require('../utils/common')
 const connection = require('../utils/database')
 
 class Notices {
-  async read(noticeId) {
-    const statement = 'update notices set status = 1 where id = ?'
-    const [result] = await connection.execute(statement, [noticeId])
+  async read(noticeId, uid) {
+    const statement = 'update notices set status = 1 where id = ? and user_id = ?'
+    const [result] = await connection.execute(statement, [noticeId, uid])
     return result
   }
 
@@ -52,7 +52,7 @@ class Notices {
       from 
         notices n
       where 
-        to_uid = ? and type = ?
+        user_id = ? and type = ?
       order by id desc
       limit ?, ?
     `

@@ -10,7 +10,9 @@ const {
 
 const uploadRouter = new Router({ prefix: '/upload' })
 
+// 上传头像
 uploadRouter.post('/avatar', verifyAuth, rmExistAvatar, handleAvatar, saveAvatar)
+// 上传动态配图
 uploadRouter.post('/picture', verifyAuth, handlePicture, resizePicture, savePicture)
 
 module.exports = uploadRouter

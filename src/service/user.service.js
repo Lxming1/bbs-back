@@ -86,15 +86,16 @@ class User {
 
   async getCareFansList(uid, pagenum, pagesize, isFans = true) {
     const statement = `
-    select 
-      u.id from care_fans cf 
-    join 
-      users u 
-    on 
-      cf.${isFans ? 'to' : 'from'}_uid = ? 
-    where 
-      cf.${!isFans ? 'to' : 'from'}_uid = u.id 
-    limit ?, ?`
+      select 
+        u.id from care_fans cf 
+      join 
+        users u 
+      on 
+        cf.${isFans ? 'to' : 'from'}_uid = ? 
+      where 
+        cf.${!isFans ? 'to' : 'from'}_uid = u.id 
+      limit ?, ?
+    `
     const [result] = await connection.execute(statement, [
       uid,
       getOffset(pagenum, pagesize),
@@ -121,6 +122,12 @@ class User {
       addressId,
       userId,
     ])
+    return result
+  }
+
+  async changePassword(email, password) {
+    const statement = `update users set password = ? where email = ?`
+    const [result] = await connection.execute(statement, [password, email])
     return result
   }
 }

@@ -8,6 +8,7 @@ const {
   showCareFansList,
   edit,
   showUserInfo,
+  changPass,
 } = require('../controller/user.controller')
 const { verifyAuth } = require('../middleware/auth.middleware')
 const {
@@ -18,6 +19,9 @@ const {
   handlePassword,
   setCareFansList,
   handleUserInfo,
+  findPassSendEmail,
+  verifyFindPassCode,
+  verifyUEmailFind,
 } = require('../middleware/user.middleware')
 
 const userRouter = new Router({ prefix: '/users' })
@@ -25,6 +29,10 @@ const userRouter = new Router({ prefix: '/users' })
 userRouter.post('/sendemail', verifyUEmail, sendEmail, reactive)
 // 注册
 userRouter.post('/', verifyUEmail, verifyCode, verifyPass, handlePassword, create)
+// 找回密码发送验证码
+userRouter.post('/sendemail-find', verifyUEmailFind, findPassSendEmail, reactive)
+// 修改密码
+userRouter.patch('/', verifyUEmailFind, verifyFindPassCode, verifyPass, handlePassword, changPass)
 // 获取头像
 userRouter.get('/:userId/avatar', showAvatar)
 // 关注
@@ -36,6 +44,6 @@ userRouter.get('/:userId/detail', showUserInfo)
 // 获取粉丝或关注列表
 userRouter.get('/:userId/:type', setCareFansList, showCareFansList)
 // 编辑资料
-userRouter.post('/edit', verifyAuth, handleUserInfo, edit)
+userRouter.put('/', verifyAuth, handleUserInfo, edit)
 
 module.exports = userRouter

@@ -14,6 +14,7 @@ const sqlFragment = `
       'name', p.name
     ) plate,
     (select count(*) from comment ml where ml.moment_id = m.id) commentCount,
+    (select count(*) from praise p where p.moment_id = m.id) praiseCount,
     m.user_id author, 
     m.create_at createTime, m.update_at updataTime
   FROM moment m
@@ -100,13 +101,9 @@ class Moment {
     try {
       statement = `
         select 
-          ud.user_id uid
+          m.user_id uid
         from 
-          user_detail ud 
-        join 
           moment m 
-        on 
-          m.user_id = ud.user_id 
         where 
           m.id = ?
       `
@@ -120,7 +117,7 @@ class Moment {
       if (toUid === uid) return res[0]
       const statement = `
         insert into notices 
-          (moment_id, from_uid, to_uid, type) 
+          (moment_id, from_uid, user_id, type) 
         values
           (?, ?, ?, ?)
       `

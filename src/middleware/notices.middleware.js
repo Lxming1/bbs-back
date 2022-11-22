@@ -1,6 +1,4 @@
-const { detail } = require('../service/moment.service')
 const { getNotices } = require('../service/notices.service')
-const { getUserInfo } = require('../service/user.service')
 const { isMyNaN } = require('../utils/common')
 const handleNotices = async (ctx, next) => {
   const { pagenum, pagesize } = ctx.query

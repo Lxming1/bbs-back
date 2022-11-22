@@ -35,7 +35,7 @@ const verifyEmail = (email) => {
     /^([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+@([a-zA-Z0-9]+[_|\_|\.]?)*[a-zA-Z0-9]+\.[a-zA-Z]{2,3}$/ //验证邮箱正则
   return regEmail.test(email)
 }
-const verifyPass = (pass) => {
+const verifyPassword = (pass) => {
   const regPass = /^[0-9a-zA-Z_]{6,16}$/
   return regPass.test(pass)
 }
@@ -50,7 +50,7 @@ const isMyNaN = (...num) => num.some((item) => isNaN(item))
 
 module.exports = {
   verifyName,
-  verifyPass,
+  verifyPassword,
   md5handle,
   successBody,
   successMes,

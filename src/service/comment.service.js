@@ -24,13 +24,9 @@ class Comment {
     try {
       statement = `
         select 
-          ud.user_id uid
+          m.user_id uid
         from 
-          user_detail ud 
-        join 
           moment m 
-        on 
-          m.user_id = ud.user_id 
         where 
           m.id = ?
       `
@@ -44,7 +40,7 @@ class Comment {
       if (toUid === uid) return res[0]
       const statement = `
         insert into notices 
-          (moment_id, from_uid, to_uid, type) 
+          (moment_id, from_uid, user_id, type) 
         values
           (?, ?, ?, ?)
       `
@@ -75,13 +71,9 @@ class Comment {
     try {
       statement = `
         select 
-          ud.user_id uid
+          m.user_id uid
         from 
-          user_detail ud 
-        join 
           moment m 
-        on 
-          m.user_id = ud.user_id 
         where 
           m.id = ?
       `
@@ -95,7 +87,7 @@ class Comment {
       if (toUid === uid) return res[0]
       const statement = `
         insert into notices 
-          (moment_id, comment_id, from_uid, to_uid, type) 
+          (moment_id, comment_id, from_uid, user_id, type) 
         values
           (?, ?, ?, ?, ?)
       `
@@ -127,6 +119,7 @@ class Comment {
     const statement = `
       SELECT 
         c.id id, c.content content, c.comment_id commentId, c.user_id author,
+        (select count(*) from praise p where p.comment_id = c.id) praiseCount,
         c.create_at createTime, c.update_at updateTime 
       FROM comment c 
       where c.moment_id = ?
@@ -154,13 +147,9 @@ class Comment {
     try {
       statement = `
         select 
-          ud.user_id uid
+          m.user_id uid
         from 
-          user_detail ud 
-        join 
           moment m 
-        on 
-          m.user_id = ud.user_id 
         where 
           m.id = ?
       `
@@ -174,7 +163,7 @@ class Comment {
       if (toUid === userId) return res[0]
       const statement = `
         insert into notices 
-          (moment_id, comment_id, from_uid, to_uid, type) 
+          (moment_id, comment_id, from_uid, user_id, type) 
         values
           (?, ?, ?, ?, ?)
       `

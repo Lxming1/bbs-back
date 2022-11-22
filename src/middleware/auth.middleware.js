@@ -10,10 +10,7 @@ const verifyLogin = async (ctx, next) => {
   const user = ctx.request.body
 
   // 判断邮箱或密码是否为空
-  if (!user.email || !user.password) {
-    const err = new Error(errorTypes.EMAIL_OR_PASSWORD_IS_REQUIRED)
-    return ctx.app.emit('error', err, ctx)
-  }
+  if (!user.email || !user.password) return
 
   // 判断用户是否存在
   let result = (await getUserByEmail(user.email))[0]

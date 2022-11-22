@@ -12,6 +12,7 @@ const {
   cancelPraiseMoment,
 } = require('../controller/moment.controller.js')
 const { getMultiMoment, getSingleMoment, searchMoment } = require('../middleware/moment.middleware')
+const { rmPicIfMomentHas } = require('../middleware/file.middleware')
 
 const momentRouter = new Router({ prefix: '/moment' })
 
@@ -26,7 +27,7 @@ momentRouter.get('/', getMultiMoment, list)
 // 修改一条动态
 momentRouter.patch('/:momentId', verifyAuth, verifyPermission, update)
 // 删除一条动态
-momentRouter.delete('/:momentId', verifyAuth, verifyPermission, del)
+momentRouter.delete('/:momentId', verifyAuth, verifyPermission, rmPicIfMomentHas, del)
 // 获取动态图片
 momentRouter.get('/image/:filename', showPicture)
 // 点赞动态

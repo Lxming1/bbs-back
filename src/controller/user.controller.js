@@ -1,6 +1,13 @@
 const fs = require('fs')
 const { AVATAR_PATH } = require('../constants/file-types')
-const { getAvatarInfo, care, cancelCare, create, getUserInfo } = require('../service/user.service')
+const {
+  getAvatarInfo,
+  care,
+  cancelCare,
+  create,
+  getUserInfo,
+  changePassword,
+} = require('../service/user.service')
 const { successMes, successBody } = require('../utils/common')
 const redis = require('../utils/redis')
 
@@ -63,6 +70,17 @@ class User {
     try {
       const result = await getUserInfo(userId)
       ctx.body = successBody(result)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  async changPass(ctx) {
+    const { email, password } = ctx.request.body
+    try {
+      const result = await changePassword(email, password)
+      ctx.body = successBody(result, '修改成功')
+      await redis.del(`${email}find`)
     } catch (e) {
       console.log(e)
     }
