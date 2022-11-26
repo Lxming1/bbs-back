@@ -9,6 +9,7 @@ const {
   edit,
   showUserInfo,
   changPass,
+  showMomentsByUser,
 } = require('../controller/user.controller')
 const { verifyAuth } = require('../middleware/auth.middleware')
 const {
@@ -39,6 +40,8 @@ userRouter.get('/:userId/avatar', showAvatar)
 userRouter.post('/:userId/care', verifyAuth, care)
 // 取消关注
 userRouter.delete('/:userId/care', verifyAuth, cancelCare)
+// 获取用户的动态
+userRouter.get('/:userId/moments', showMomentsByUser)
 // 获取用户个人信息
 userRouter.get('/:userId/detail', showUserInfo)
 // 获取粉丝或关注列表

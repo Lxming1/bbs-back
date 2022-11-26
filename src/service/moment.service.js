@@ -16,7 +16,7 @@ const sqlFragment = `
     (select count(*) from comment ml where ml.moment_id = m.id) commentCount,
     (select count(*) from praise p where p.moment_id = m.id) praiseCount,
     m.user_id author, 
-    m.create_at createTime, m.update_at updataTime
+    m.create_at createTime, m.update_at updateTime
   FROM moment m
   LEFT JOIN plate p ON m.plate_id = p.id 
 `
@@ -43,7 +43,7 @@ class Moment {
 
   async list(pagesize, pagenum) {
     const statement = `
-      ${sqlFragment} GROUP BY m.id ORDER BY m.id desc LIMIT ?, ?
+      ${sqlFragment} GROUP BY m.id ORDER BY updateTime desc LIMIT ?, ?
     `
     try {
       const [result] = await connection.execute(statement, [getOffset(pagenum, pagesize), pagesize])
@@ -78,7 +78,7 @@ class Moment {
   }
 
   async search(content, pagenum, pagesize) {
-    const statement = `${sqlFragment} where content like ? limit ?, ?`
+    const statement = `${sqlFragment} where content like ? order by updateTime desc limit ?, ?`
     const [result] = await connection.execute(statement, [
       `%${content}%`,
       getOffset(pagenum, pagesize),
@@ -135,6 +135,13 @@ class Moment {
     const [result] = await connection.execute(statement, [momentId, uid])
     return result
   }
+
+  async getMomentTotal() {
+    const statement = `select count(*) count from moment`
+    const [result] = await connection.execute(statement)
+    return result[0]
+  }
 }
 
 module.exports = new Moment()
+module.exports.momentSqlFragment = sqlFragment

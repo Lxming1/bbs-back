@@ -7,8 +7,9 @@ const {
   create,
   getUserInfo,
   changePassword,
+  getMomentsByUser,
 } = require('../service/user.service')
-const { successMes, successBody } = require('../utils/common')
+const { successMes, successBody, isMyNaN } = require('../utils/common')
 const redis = require('../utils/redis')
 
 class User {
@@ -54,10 +55,7 @@ class User {
 
   async showCareFansList(ctx) {
     const result = ctx.result
-    ctx.body = successBody({
-      total: result.length,
-      users: result,
-    })
+    ctx.body = successBody(result)
   }
 
   async edit(ctx) {
@@ -81,6 +79,28 @@ class User {
       const result = await changePassword(email, password)
       ctx.body = successBody(result, '修改成功')
       await redis.del(`${email}find`)
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  async showMomentsByUser(ctx) {
+    const { pagenum, pagesize } = ctx.query
+    if (isMyNaN(pagenum, pagesize)) return
+    if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
+      const err = new Error(FORMAT_ERROR)
+      return ctx.app.emit('error', err, ctx)
+    }
+    const { userId } = ctx.params
+    try {
+      let result = await getMomentsByUser(userId, pagenum, pagesize)
+      result = await Promise.all(
+        result.map(async (item) => {
+          item.author = await getUserInfo(item.author)
+          return item
+        })
+      )
+      ctx.body = successBody(result)
     } catch (e) {
       console.log(e)
     }

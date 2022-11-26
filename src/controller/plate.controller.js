@@ -12,10 +12,9 @@ class Plate {
   }
 
   async showMomentByPlage(ctx) {
-    const result = ctx.result
     ctx.body = successBody({
-      total: result.length,
-      momentList: result,
+      total: ctx.total,
+      moments: ctx.result,
     })
   }
 }

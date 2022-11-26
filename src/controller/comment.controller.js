@@ -25,10 +25,7 @@ class Comment {
 
   async list(ctx) {
     const result = ctx.result
-    ctx.body = successBody({
-      total: result.length,
-      comments: result,
-    })
+    ctx.body = successBody(result)
   }
 
   async pariseComment(ctx) {

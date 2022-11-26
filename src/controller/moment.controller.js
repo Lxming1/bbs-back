@@ -20,22 +20,20 @@ class Moment {
 
   async search(ctx) {
     const result = ctx.result
-    ctx.body = successBody({
-      total: result.length,
-      momentList: result,
-    })
+    ctx.body = successBody(result)
   }
 
   // 查询一条动态
-  async detail(ctx, next) {
+  async detail(ctx) {
     ctx.body = successBody(ctx.result)
   }
 
   // 查询多条动态
-  async list(ctx, next) {
+  async list(ctx) {
     const result = ctx.result
+    const total = ctx.total
     ctx.body = successBody({
-      total: result?.length ?? 0,
+      total,
       moments: result,
     })
   }

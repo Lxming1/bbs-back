@@ -1,5 +1,6 @@
 const { getOffset } = require('../utils/common')
 const connection = require('../utils/database')
+const { momentSqlFragment } = require('./moment.service')
 
 class User {
   async create({ email, password }) {
@@ -128,6 +129,17 @@ class User {
   async changePassword(email, password) {
     const statement = `update users set password = ? where email = ?`
     const [result] = await connection.execute(statement, [password, email])
+    return result
+  }
+
+  async getMomentsByUser(userId, pagenum, pagesize) {
+    const sqlFragment = momentSqlFragment
+    const statement = `${sqlFragment} where m.user_id = ? limit ?, ?`
+    const [result] = await connection.execute(statement, [
+      userId,
+      getOffset(pagenum, pagesize),
+      pagesize,
+    ])
     return result
   }
 }

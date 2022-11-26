@@ -1,5 +1,5 @@
 const { FORMAT_ERROR } = require('../constants/error-types')
-const { getMomentListByPlate } = require('../service/plate.service')
+const { getMomentListByPlate, getMomentByPlateCount } = require('../service/plate.service')
 const { isMyNaN } = require('../utils/common')
 
 const getMomentByPlateId = async (ctx, next) => {
@@ -12,8 +12,8 @@ const getMomentByPlateId = async (ctx, next) => {
 
   const { plateId } = ctx.params
   try {
-    const result = await getMomentListByPlate(plateId, pagenum, pagesize)
-    ctx.result = result
+    ctx.result = await getMomentListByPlate(plateId, pagenum, pagesize)
+    ctx.total = (await getMomentByPlateCount(plateId)).count
     await next()
   } catch (e) {
     console.log(e)

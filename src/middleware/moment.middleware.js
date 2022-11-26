@@ -1,7 +1,8 @@
 const { getUserInfo } = require('../service/user.service')
 const { FORMAT_ERROR } = require('../constants/error-types')
-const { list, detail, search } = require('../service/moment.service')
+const { list, detail, search, getMomentTotal } = require('../service/moment.service')
 const { isMyNaN } = require('../utils/common')
+const { getMomentListByPlate, getMomentByPlateCount } = require('../service/plate.service')
 
 const getMultiMoment = async (ctx, next) => {
   const { pagenum, pagesize } = ctx.query
@@ -10,19 +11,27 @@ const getMultiMoment = async (ctx, next) => {
     const err = new Error(FORMAT_ERROR)
     return ctx.app.emit('error', err, ctx)
   }
-
+  const { plateId } = ctx.params
   try {
-    let result = await list(pagesize, pagenum)
+    let result, total
+    if (plateId == 0 || plateId === undefined) {
+      result = await list(pagesize, pagenum)
+      total = (await getMomentTotal()).count
+    } else {
+      result = await getMomentListByPlate(plateId, pagenum, pagesize)
+      total = (await getMomentByPlateCount(plateId)).count
+    }
     if (!result) {
       ctx.result = []
+      ctx.total = 0
     } else {
       const promissArr = result.map(async (item) => {
         item.author = await getUserInfo(item.author)
-        console.log(item.author)
         return item
       })
       ctx.result = await Promise.all(promissArr)
     }
+    ctx.total = total
     await next()
   } catch (err) {
     console.log(err)

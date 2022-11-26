@@ -23,7 +23,7 @@ momentRouter.get('/search', searchMoment, search)
 // 查询某一条动态
 momentRouter.get('/:momentId', getSingleMoment, detail)
 // 查询所有动态
-momentRouter.get('/', getMultiMoment, list)
+momentRouter.get('/plate/:plateId', getMultiMoment, list)
 // 修改一条动态
 momentRouter.patch('/:momentId', verifyAuth, verifyPermission, update)
 // 删除一条动态
