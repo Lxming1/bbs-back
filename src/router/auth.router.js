@@ -4,8 +4,6 @@ const { verifyLogin } = require('../middleware/auth.middleware')
 
 const authRouter = new Router()
 
-authRouter.post('/login', verifyLogin, login, () => {
-  console.log('登录成功')
-})
+authRouter.post('/login', verifyLogin, login)
 
 module.exports = authRouter

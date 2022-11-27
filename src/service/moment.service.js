@@ -114,6 +114,7 @@ class Moment {
     }
     try {
       const { uid: toUid } = result[0][0]
+      if (!res) return
       if (toUid === uid) return res[0]
       const statement = `
         insert into notices 
@@ -139,6 +140,24 @@ class Moment {
   async getMomentTotal() {
     const statement = `select count(*) count from moment`
     const [result] = await connection.execute(statement)
+    return result[0]
+  }
+
+  async getPraisedList(userId) {
+    const statement = `
+      select 
+        moment_id momentId 
+      from 
+        praise 
+      where user_id = ? and comment_id = 0
+    `
+    let result = await connection.execute(statement, [userId])
+    return result[0]
+  }
+
+  async getPraiseCount(momentId) {
+    const statement = 'select count(*) count from praise where moment_id = ?'
+    const [result] = await connection.execute(statement, momentId)
     return result[0]
   }
 }

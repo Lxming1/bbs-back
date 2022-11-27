@@ -9,6 +9,7 @@ const {
   update,
   showPicture,
   praiseMoment,
+  praiseList,
   cancelPraiseMoment,
 } = require('../controller/moment.controller.js')
 const { getMultiMoment, getSingleMoment, searchMoment } = require('../middleware/moment.middleware')
@@ -20,6 +21,8 @@ const momentRouter = new Router({ prefix: '/moment' })
 momentRouter.post('/', verifyAuth, create)
 // 搜索动态
 momentRouter.get('/search', searchMoment, search)
+// 获取点赞列表
+momentRouter.get('/praise', verifyAuth, praiseList)
 // 查询某一条动态
 momentRouter.get('/:momentId', getSingleMoment, detail)
 // 查询所有动态

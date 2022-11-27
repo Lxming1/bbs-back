@@ -1,6 +1,6 @@
 const { getUserInfo } = require('../service/user.service')
 const { FORMAT_ERROR } = require('../constants/error-types')
-const { list, detail, search, getMomentTotal } = require('../service/moment.service')
+const { list, detail, search, getMomentTotal, getAllMoment } = require('../service/moment.service')
 const { isMyNaN } = require('../utils/common')
 const { getMomentListByPlate, getMomentByPlateCount } = require('../service/plate.service')
 

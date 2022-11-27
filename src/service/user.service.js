@@ -1,3 +1,4 @@
+const { APP_HOST, APP_PORT } = require('../app/config')
 const { getOffset } = require('../utils/common')
 const connection = require('../utils/database')
 const { momentSqlFragment } = require('./moment.service')
@@ -16,8 +17,12 @@ class User {
     }
     const userId = result[0].insertId
     try {
-      statement = `insert into user_detail (name, user_id) values(?, ?)`
-      result = await connection.execute(statement, [email, userId])
+      statement = `insert into user_detail (name, user_id, avatar_url) values(?, ?, ?)`
+      result = await connection.execute(statement, [
+        email,
+        userId,
+        `${APP_HOST}:${APP_PORT}/users/0/avatar`,
+      ])
       await conn.commit()
       return userId
     } catch (e) {
@@ -48,6 +53,7 @@ class User {
           'children', a1.name,
           'parent', a2.name
         ) from address a1 left join address a2 on a1.pid = a2.id where a1.id = ud.address_id)) address,
+        (select count(*) from moment where user_id = id) momentCount,
         (select count(*) from care_fans where to_uid = id) fansCount,
         (select count(*) from care_fans where from_uid = id) careCount,
         ud.introduction, ud.avatar_url, u.create_at createTime, u.update_at updateTime

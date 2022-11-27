@@ -30,7 +30,7 @@ class Notices {
           where m.id = n.moment_id
         ) moment,
         if(
-          comment_id=null, null, (
+          comment_id=0, null, (
             select JSON_OBJECT(
               "id", id, 
               "content", content, 

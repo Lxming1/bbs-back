@@ -5,10 +5,13 @@ const {
   praise,
   cancelPraise,
   getPicInfo,
+  detail,
+  getPraiseCount,
 } = require('../service/moment.service')
 const { successBody } = require('../utils/common')
 const { PICTURE_PATH } = require('../constants/file-types')
 const fs = require('fs')
+const { getPraisedList } = require('../service/moment.service')
 
 class Moment {
   async create(ctx) {
@@ -78,16 +81,32 @@ class Moment {
     const { momentId } = ctx.params
     const { id } = ctx.user
     if (isNaN(momentId)) return
-    const result = await praise(id, momentId)
-    ctx.body = successBody(result, '点赞成功')
+    await praise(id, momentId)
+    const moment = (await detail(momentId))[0]
+    const praiseCount = moment.praiseCount
+    ctx.body = successBody({
+      praiseCount,
+      momentId,
+    })
   }
 
   async cancelPraiseMoment(ctx) {
     const { momentId } = ctx.params
     const { id } = ctx.user
     if (isNaN(momentId)) return
-    const result = await cancelPraise(id, momentId)
-    ctx.body = successBody(result, '取消点赞成功')
+    await cancelPraise(id, momentId)
+    const moment = (await detail(momentId))[0]
+    const praiseCount = moment.praiseCount
+    ctx.body = successBody({
+      praiseCount,
+      momentId,
+    })
+  }
+
+  async praiseList(ctx) {
+    const { id } = ctx.user
+    const praiseList = (await getPraisedList(id)).map((item) => item.momentId)
+    ctx.body = successBody(praiseList)
   }
 }
 
