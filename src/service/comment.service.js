@@ -115,7 +115,7 @@ class Comment {
     return result
   }
 
-  async list(momentId, pagenum, pagesize) {
+  async list(momentId) {
     const statement = `
       SELECT 
         c.id id, c.content content, c.comment_id commentId, c.user_id author,
@@ -123,13 +123,8 @@ class Comment {
         c.create_at createTime, c.update_at updateTime 
       FROM comment c 
       where c.moment_id = ?
-      limit ?, ?
     `
-    const [result] = await connection.execute(statement, [
-      momentId,
-      getOffset(pagenum, pagesize),
-      pagesize,
-    ])
+    const [result] = await connection.execute(statement, [momentId])
     return result
   }
 
@@ -184,6 +179,24 @@ class Comment {
         moment_id = ? and user_id = ? and comment_id = ?`
     const [result] = await connection.execute(statement, [momentId, userId, commentId])
     return result
+  }
+
+  async getCommentCount(momentId) {
+    const statement = `select count(*) count from comment where moment_id = ?`
+    const [result] = await connection.execute(statement, [momentId])
+    return result
+  }
+
+  async getPraiseList(commentId) {
+    const statement = `
+     select 
+        comment_id commentId 
+      from 
+        praise 
+      where user_id = ? and comment_id = ?
+    `
+    const [result] = await connection.execute(statement, [commentId])
+    return result[0]
   }
 }
 

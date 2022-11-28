@@ -1,4 +1,4 @@
-const { list, verify } = require('../service/comment.service')
+const { list, verify, getCommentCount } = require('../service/comment.service')
 const { getUserInfo } = require('../service/user.service')
 const { isMyNaN } = require('../utils/common')
 
@@ -13,21 +13,21 @@ const verifyComment = async (ctx, next) => {
 }
 
 const handleComment = async (ctx, next) => {
-  const { pagenum, pagesize } = ctx.query
-  if (isMyNaN(pagenum, pagesize)) return
-  if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
-    const err = new Error(FORMAT_ERROR)
-    return ctx.app.emit('error', err, ctx)
-  }
-  const { momentId } = ctx.query
+  const { momentId, userId } = ctx.query
   if (!momentId) return
   try {
-    const result = await list(momentId, pagenum, pagesize)
+    const result = await list(momentId)
     const promiseArr = result.map(async (item) => {
       item.author = await getUserInfo(item.author)
       return item
     })
     await Promise.all(promiseArr)
+    const total = await getCommentCount(momentId)
+    if (userId) {
+      const praiseList = await getPraiseList(ctx.user.id)
+      ctx.praiseList = praiseList
+    }
+    ctx.total = total[0].count
     ctx.result = result
     await next()
   } catch (e) {

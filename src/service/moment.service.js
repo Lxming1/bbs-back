@@ -157,7 +157,7 @@ class Moment {
 
   async getPraiseCount(momentId) {
     const statement = 'select count(*) count from praise where moment_id = ?'
-    const [result] = await connection.execute(statement, momentId)
+    const [result] = await connection.execute(statement, [momentId])
     return result[0]
   }
 }

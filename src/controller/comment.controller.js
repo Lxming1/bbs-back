@@ -1,4 +1,11 @@
-const { create, reply, del, praise, cancelPraise } = require('../service/comment.service')
+const {
+  create,
+  reply,
+  del,
+  praise,
+  cancelPraise,
+  getPraiseList,
+} = require('../service/comment.service')
 const { successBody, isMyNaN } = require('../utils/common')
 
 class Comment {
@@ -24,8 +31,32 @@ class Comment {
   }
 
   async list(ctx) {
-    const result = ctx.result
-    ctx.body = successBody(result)
+    let result = ctx.result
+    const praiseList = ctx.praiseList ?? []
+    const res = []
+    const map = result.reduce((pre, item) => {
+      pre[item.id] = item
+      return pre
+    }, {})
+    for (const item of result) {
+      console.log(praiseList.length)
+      if (praiseList.length) {
+        item.isPraise = praiseList.includes(item.id)
+      }
+      if (item.commentId === null) {
+        res.push(item)
+      }
+      if (item.commentId in map) {
+        const parent = map[item.commentId]
+        parent.children = parent.children || []
+        parent.children.push(item)
+      }
+    }
+    result = res
+    ctx.body = successBody({
+      total: ctx.total,
+      comments: result,
+    })
   }
 
   async pariseComment(ctx) {
