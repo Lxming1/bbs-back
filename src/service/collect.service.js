@@ -15,7 +15,13 @@ class Collect {
   }
 
   async getCollectByUID(uid) {
-    const statement = `select id, name, status, create_at createTime, update_at updateTime from collect where user_id = ?`
+    const statement = `
+      select 
+        id, name, 
+        (select count(*) from collect_detail cd where cd.collect_id = c.id) count,
+        status, create_at createTime, update_at updateTime 
+      from collect c where user_id = ?
+    `
     const [result] = await connection.execute(statement, [uid])
     return result
   }
@@ -66,6 +72,18 @@ class Collect {
     const statement = `select status from collect where id = ?`
     const [result] = await connection.execute(statement, [collectId])
     return result[0]
+  }
+
+  async findMomentInCollect(momentId, userId) {
+    const statement = `
+      select c.id
+      from collect c 
+      join collect_detail cd 
+      on cd.collect_id = c.id
+      where cd.moment_id = ? and c.user_id = ?
+    `
+    const [result] = await connection.execute(statement, [momentId, userId])
+    return result
   }
 }
 

@@ -187,16 +187,16 @@ class Comment {
     return result
   }
 
-  async getPraiseList(commentId) {
+  async getPraiseList(userId) {
     const statement = `
      select 
         comment_id commentId 
       from 
         praise 
-      where user_id = ? and comment_id = ?
+      where user_id = ?
     `
-    const [result] = await connection.execute(statement, [commentId])
-    return result[0]
+    const [result] = await connection.execute(statement, [userId])
+    return result
   }
 }
 

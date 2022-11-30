@@ -6,6 +6,7 @@ const {
   createDetail,
   cancel,
   getCollectDetail,
+  findCollectByUserMoment,
 } = require('../controller/collect.controller')
 const { verifyCollectStatus, handleCollectDetail } = require('../middleware/collect.middleware')
 const { verifyAuth, verifyPermission } = require('../middleware/auth.middleware')

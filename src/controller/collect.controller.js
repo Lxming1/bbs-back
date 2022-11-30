@@ -6,6 +6,7 @@ const {
   createDetail,
   cancel,
   collectDetail,
+  findMomentInCollect,
 } = require('../service/collect.service')
 const { successBody, isMyNaN } = require('../utils/common')
 
@@ -36,8 +37,14 @@ class Collect {
   }
 
   async showCollectList(ctx) {
-    const { uid } = ctx.query
-    const result = await getCollectByUID(uid)
+    const { uid, momentId } = ctx.query
+    if (!momentId) return
+    let result = await getCollectByUID(uid)
+    const hasCollect = await findMomentInCollect(momentId, uid)
+    result = result.map((item) => {
+      item.isCollected = hasCollect.map((item1) => item1.id).includes(item.id)
+      return item
+    })
     ctx.body = successBody(result)
   }
 

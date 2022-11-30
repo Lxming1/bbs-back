@@ -39,7 +39,6 @@ class Comment {
       return pre
     }, {})
     for (const item of result) {
-      console.log(praiseList.length)
       if (praiseList.length) {
         item.isPraise = praiseList.includes(item.id)
       }
