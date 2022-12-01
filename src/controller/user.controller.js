@@ -8,6 +8,7 @@ const {
   getUserInfo,
   changePassword,
   getMomentsByUser,
+  getAddress,
 } = require('../service/user.service')
 const { successMes, successBody, isMyNaN } = require('../utils/common')
 const redis = require('../utils/redis')
@@ -104,6 +105,28 @@ class User {
     } catch (e) {
       console.log(e)
     }
+  }
+
+  async addressList(ctx) {
+    const result = await getAddress()
+    const map = {}
+    const res = []
+    result.forEach((item) => {
+      if (item.pid === null) {
+        map[item.id] = item
+      }
+    })
+    result.forEach((item) => {
+      if (item.pid === null) {
+        res.push(item)
+      }
+      if (item.pid !== null) {
+        const parent = map[item.pid]
+        parent.children = parent.children || []
+        parent.children.push(item)
+      }
+    })
+    ctx.body = successBody(res)
   }
 }
 

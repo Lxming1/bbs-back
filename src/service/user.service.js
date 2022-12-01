@@ -148,6 +148,12 @@ class User {
     ])
     return result
   }
+
+  async getAddress() {
+    const statement = `select * from address`
+    const [result] = await connection.execute(statement)
+    return result
+  }
 }
 
 module.exports = new User()

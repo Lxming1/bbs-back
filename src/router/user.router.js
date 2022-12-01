@@ -10,6 +10,7 @@ const {
   showUserInfo,
   changPass,
   showMomentsByUser,
+  addressList,
 } = require('../controller/user.controller')
 const { verifyAuth } = require('../middleware/auth.middleware')
 const {
@@ -48,5 +49,7 @@ userRouter.get('/:userId/detail', showUserInfo)
 userRouter.get('/:userId/:type', setCareFansList, showCareFansList)
 // 编辑资料
 userRouter.put('/', verifyAuth, handleUserInfo, edit)
+// 获取省市
+userRouter.get('/address', addressList)
 
 module.exports = userRouter
