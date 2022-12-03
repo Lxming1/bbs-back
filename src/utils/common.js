@@ -44,6 +44,11 @@ const verifyName = (name) => {
   return regName.test(name)
 }
 
+const verifyDate = (time) => {
+  const regTime = /\d{4}-\d{2}-\d{2}/
+  return regTime.test(time)
+}
+
 const getOffset = (pagenum, pagesize) => String((pagenum - 1) * pagesize)
 
 const isMyNaN = (...num) => num.some((item) => isNaN(item))
@@ -58,4 +63,5 @@ module.exports = {
   verifyEmail,
   getOffset,
   isMyNaN,
+  verifyDate,
 }

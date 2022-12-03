@@ -8,6 +8,7 @@ const {
   isMyNaN,
   verifyName,
   verifyPassword,
+  verifyDate,
 } = require('../utils/common')
 const { getUserInfo } = require('../service/user.service')
 const { emailTransport, send } = require('../utils/email')
@@ -152,7 +153,8 @@ const setCareFansList = async (ctx, next) => {
 const handleUserInfo = async (ctx, next) => {
   const { id: userId } = ctx.user
   const { address, name, birthday, gender, introduction } = ctx.request.body
-  if (!verifyName(name)) {
+  console.log(userId, address, name, birthday, gender, introduction)
+  if (!verifyName(name) || !verifyDate(birthday)) {
     const err = new Error(errorTypes.FORMAT_ERROR)
     return ctx.app.emit('error', err, ctx)
   }

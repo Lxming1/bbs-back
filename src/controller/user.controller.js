@@ -60,7 +60,9 @@ class User {
   }
 
   async edit(ctx) {
-    ctx.body = successBody(ctx.result, '编辑成功')
+    const { id } = ctx.user
+    const result = await getUserInfo(id)
+    ctx.body = successBody(result, '编辑成功')
   }
 
   async showUserInfo(ctx) {

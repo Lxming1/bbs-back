@@ -19,7 +19,7 @@ class User {
     try {
       statement = `insert into user_detail (name, user_id, avatar_url) values(?, ?, ?)`
       result = await connection.execute(statement, [
-        email,
+        `用户${userId}`,
         userId,
         `${APP_HOST}:${APP_PORT}/users/0/avatar`,
       ])
@@ -49,9 +49,8 @@ class User {
       select 
         u.id, u.email, ud.name, ud.birthday, ud.gender,
         if(ud.address_id=null, null, (select JSON_OBJECT(
-          'id', a1.id,
-          'children', a1.name,
-          'parent', a2.name
+          'children', JSON_OBJECT('id', a1.id, 'name', a1.name),
+          'parent', JSON_OBJECT('id', a2.id, 'name', a2.name)
         ) from address a1 left join address a2 on a1.pid = a2.id where a1.id = ud.address_id)) address,
         (select count(*) from moment where user_id = id) momentCount,
         (select count(*) from care_fans where to_uid = id) fansCount,
@@ -123,7 +122,7 @@ class User {
     `
     const [result] = await connection.execute(statement, [
       name,
-      birthday,
+      birthday + ' 08:00:00',
       gender,
       introduction,
       addressId,
