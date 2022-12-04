@@ -1,8 +1,9 @@
 const { getUserInfo } = require('../service/user.service')
 const { FORMAT_ERROR } = require('../constants/error-types')
-const { list, detail, search, getMomentTotal, getAllMoment } = require('../service/moment.service')
+const { list, detail, search, getMomentTotal } = require('../service/moment.service')
 const { isMyNaN } = require('../utils/common')
 const { getMomentListByPlate, getMomentByPlateCount } = require('../service/plate.service')
+const { APP_HOST, APP_PORT } = require('../app/config')
 
 const getMultiMoment = async (ctx, next) => {
   const { pagenum, pagesize } = ctx.query
@@ -25,11 +26,25 @@ const getMultiMoment = async (ctx, next) => {
       ctx.result = []
       ctx.total = 0
     } else {
-      const promissArr = result.map(async (item) => {
-        item.author = await getUserInfo(item.author)
+      result = result.map((item) => {
+        if (item.visible === 1) {
+          item.author = {
+            id: item.author.id,
+            avatar_url: `${APP_HOST}:${APP_PORT}/users/0/avatar`,
+            name: '匿名用户',
+          }
+        }
         return item
       })
-      ctx.result = await Promise.all(promissArr)
+      result = await Promise.all(
+        result.map(async (item) => {
+          if (item.visible === 0) {
+            item.author = await getUserInfo(item.author)
+          }
+          return item
+        })
+      )
+      ctx.result = result
     }
     ctx.total = total
     await next()

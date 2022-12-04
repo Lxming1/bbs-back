@@ -9,6 +9,7 @@ const {
   changePassword,
   getMomentsByUser,
   getAddress,
+  getRelation,
 } = require('../service/user.service')
 const { successMes, successBody, isMyNaN } = require('../utils/common')
 const redis = require('../utils/redis')
@@ -42,7 +43,8 @@ class User {
     const { userId: toUid } = ctx.params
     const { id: formUid } = ctx.user
     if (toUid === formUid) return
-    const result = await care(formUid, toUid)
+    let result = await care(formUid, toUid)
+    result = await getRelation(formUid, toUid)
     ctx.body = successBody(result, '关注成功')
   }
 
@@ -50,7 +52,8 @@ class User {
     const { userId: toUid } = ctx.params
     const { id: formUid } = ctx.user
     if (toUid === formUid) return
-    const result = await cancelCare(formUid, toUid)
+    let result = await cancelCare(formUid, toUid)
+    result = await getRelation(formUid, toUid)
     ctx.body = successBody(result, '取消关注成功')
   }
 
@@ -129,6 +132,14 @@ class User {
       }
     })
     ctx.body = successBody(res)
+  }
+
+  async careFanRelation(ctx) {
+    const { uid } = ctx.params
+    const { id } = ctx.user
+    if (parseInt(uid) === id) return
+    const result = await getRelation(id, uid)
+    ctx.body = successBody(result)
   }
 }
 

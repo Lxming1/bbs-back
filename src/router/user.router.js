@@ -11,6 +11,7 @@ const {
   changPass,
   showMomentsByUser,
   addressList,
+  careFanRelation,
 } = require('../controller/user.controller')
 const { verifyAuth } = require('../middleware/auth.middleware')
 const {
@@ -35,6 +36,8 @@ userRouter.post('/', verifyUEmail, verifyCode, verifyPass, handlePassword, creat
 userRouter.post('/sendemail-find', verifyUEmailFind, findPassSendEmail, reactive)
 // 修改密码
 userRouter.patch('/', verifyUEmailFind, verifyFindPassCode, verifyPass, handlePassword, changPass)
+// 查询粉丝关注关系
+userRouter.get('/care_fan/:uid', verifyAuth, careFanRelation)
 // 获取头像
 userRouter.get('/:userId/avatar', showAvatar)
 // 关注

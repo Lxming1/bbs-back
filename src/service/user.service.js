@@ -122,7 +122,7 @@ class User {
     `
     const [result] = await connection.execute(statement, [
       name,
-      birthday + ' 08:00:00',
+      birthday !== null ? birthday + ' 08:00:00' : null,
       gender,
       introduction,
       addressId,
@@ -151,6 +151,16 @@ class User {
   async getAddress() {
     const statement = `select * from address`
     const [result] = await connection.execute(statement)
+    return result
+  }
+
+  async getRelation(myId, otherId) {
+    const result = {}
+    let statement = `select * from care_fans where from_uid = ? and to_uid = ?`
+    const [care] = await connection.execute(statement, [myId, otherId])
+    const [fan] = await connection.execute(statement, [otherId, myId])
+    result.care = !!care[0]?.id
+    result.fan = !!fan[0]?.id
     return result
   }
 }

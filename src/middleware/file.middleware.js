@@ -40,7 +40,6 @@ const rmPicIfMomentHas = async (ctx, next) => {
       const promiseArr = [
         fs.promises.rm(picPath),
         fs.promises.rm(`${picPath}-large`),
-        fs.promises.rm(`${picPath}-middle`),
         fs.promises.rm(`${picPath}-small`),
       ]
       await Promise.all(promiseArr)
@@ -58,7 +57,6 @@ const resizePicture = async (ctx, next) => {
     const destination = path.join(file.destination, file.filename)
     jimp.read(file.path).then((image) => {
       image.resize(1280, jimp.AUTO).write(`${destination}-large`)
-      image.resize(640, jimp.AUTO).write(`${destination}-middle`)
       image.resize(320, jimp.AUTO).write(`${destination}-small`)
     })
   }

@@ -153,8 +153,7 @@ const setCareFansList = async (ctx, next) => {
 const handleUserInfo = async (ctx, next) => {
   const { id: userId } = ctx.user
   const { address, name, birthday, gender, introduction } = ctx.request.body
-  console.log(userId, address, name, birthday, gender, introduction)
-  if (!verifyName(name) || !verifyDate(birthday)) {
+  if (!verifyName(name) || (birthday !== null && !verifyDate(birthday))) {
     const err = new Error(errorTypes.FORMAT_ERROR)
     return ctx.app.emit('error', err, ctx)
   }

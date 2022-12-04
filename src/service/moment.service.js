@@ -15,7 +15,7 @@ const sqlFragment = `
     ) plate,
     (select count(*) from comment ml where ml.moment_id = m.id) commentCount,
     (select count(*) from praise p where p.moment_id = m.id) praiseCount,
-    m.user_id author, 
+    m.visible visible, m.user_id author, 
     m.create_at createTime, m.update_at updateTime
   FROM moment m
   LEFT JOIN plate p ON m.plate_id = p.id 

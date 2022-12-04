@@ -12,13 +12,25 @@ const { successBody } = require('../utils/common')
 const { PICTURE_PATH } = require('../constants/file-types')
 const fs = require('fs')
 const { getPraisedList } = require('../service/moment.service')
+const { getUserInfo } = require('../service/user.service')
 
 class Moment {
   async create(ctx) {
     const { id } = ctx.user
     const { title, content, plateId, visible } = ctx.request.body
     const result = await create(title, content, id, plateId, visible)
-    ctx.body = successBody(result, '发表动态成功')
+    let moment = (await detail(result.insertId))[0]
+    if (moment.visible === 1) {
+      moment.author = {
+        id: moment.author.id,
+        avatar_url: `${APP_HOST}:${APP_PORT}/users/0/avatar`,
+        name: '匿名用户',
+      }
+    } else {
+      moment.author = await getUserInfo(moment.author)
+    }
+
+    ctx.body = successBody(moment, '发表动态成功')
   }
 
   async search(ctx) {
