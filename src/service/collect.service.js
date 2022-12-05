@@ -8,9 +8,9 @@ class Collect {
     return result
   }
 
-  async update(uid, name, status) {
-    const statement = `update collect set name = ? , status = ? where user_id = ?`
-    const [result] = await connection.execute(statement, [name, status, uid])
+  async update(collectId, name, status) {
+    const statement = `update collect set name = ?, status = ? where id = ?`
+    const [result] = await connection.execute(statement, [name, status, collectId])
     return result
   }
 
@@ -20,7 +20,7 @@ class Collect {
         id, name, 
         (select count(*) from collect_detail cd where cd.collect_id = c.id) count,
         status, create_at createTime, update_at updateTime 
-      from collect c where user_id = ?
+      from collect c where user_id = ? order by updateTime desc
     `
     const [result] = await connection.execute(statement, [uid])
     return result
@@ -83,6 +83,12 @@ class Collect {
       where cd.moment_id = ? and c.user_id = ?
     `
     const [result] = await connection.execute(statement, [momentId, userId])
+    return result
+  }
+
+  async delCollection(collectId) {
+    const statement = 'delete from collect where id = ?'
+    const [result] = await connection.execute(statement, [collectId])
     return result
   }
 }

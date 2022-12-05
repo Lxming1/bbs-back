@@ -53,6 +53,26 @@ const verifyAuth = async (ctx, next) => {
   }
 }
 
+const verifyAuthNoLimit = async (ctx, next) => {
+  try {
+    const authorization = ctx.headers.authorization
+    if (!authorization) throw new Error()
+    const token = authorization.replace('Bearer ', '')
+    const result = jwt.verify(token, PUBLIC_KEY, {
+      algorithms: ['RS256'],
+    })
+    ctx.user = result
+  } catch (error) {}
+  try {
+    await next()
+  } catch (error) {
+    // 捕获其他错误
+    console.log(error)
+    const err = new Error()
+    return ctx.app.emit('error', err, ctx)
+  }
+}
+
 // 执行修改或删除操作时，判断是不是本人进行操作
 const verifyPermission = async (ctx, next) => {
   const [key] = Object.keys(ctx.params)
@@ -74,4 +94,5 @@ module.exports = {
   verifyLogin,
   verifyAuth,
   verifyPermission,
+  verifyAuthNoLimit,
 }

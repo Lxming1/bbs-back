@@ -6,7 +6,7 @@ const {
   createDetail,
   cancel,
   getCollectDetail,
-  findCollectByUserMoment,
+  delCollect,
 } = require('../controller/collect.controller')
 const { verifyCollectStatus, handleCollectDetail } = require('../middleware/collect.middleware')
 const { verifyAuth, verifyPermission } = require('../middleware/auth.middleware')
@@ -17,6 +17,8 @@ const collectRouter = new Router({ prefix: '/collect' })
 collectRouter.post('/', verifyAuth, create)
 // 获取用户收藏夹列表
 collectRouter.get('/', showCollectList)
+// 删除收藏库
+collectRouter.del('/del/:collectId', verifyAuth, verifyPermission, delCollect)
 // 修改收藏夹名称
 collectRouter.patch('/:collectId', verifyAuth, verifyPermission, update)
 // 添加动态至收藏夹

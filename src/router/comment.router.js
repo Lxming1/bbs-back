@@ -7,7 +7,7 @@ const {
   pariseComment,
   cancelPariseComment,
 } = require('../controller/comment.controller')
-const { verifyAuth, verifyPermission } = require('../middleware/auth.middleware')
+const { verifyAuth, verifyPermission, verifyAuthNoLimit } = require('../middleware/auth.middleware')
 const { verifyComment, handleComment } = require('../middleware/comment.middleware')
 
 const commentRouter = new Router({ prefix: '/comment' })
@@ -23,6 +23,6 @@ commentRouter.post('/:commentId/reply', verifyAuth, verifyComment, reply)
 // 删除评论
 commentRouter.delete('/:commentId', verifyAuth, verifyPermission, del)
 // 获取评论列表
-commentRouter.get('/', handleComment, list)
+commentRouter.get('/', verifyAuthNoLimit, handleComment, list)
 
 module.exports = commentRouter

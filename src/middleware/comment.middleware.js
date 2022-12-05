@@ -13,7 +13,8 @@ const verifyComment = async (ctx, next) => {
 }
 
 const handleComment = async (ctx, next) => {
-  const { momentId, userId } = ctx.query
+  const { momentId } = ctx.query
+  const { id: userId } = ctx.user
   if (!momentId) return
   try {
     const result = await list(momentId)

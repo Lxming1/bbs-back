@@ -1,5 +1,5 @@
 const Router = require('koa-router')
-const { verifyAuth, verifyPermission } = require('../middleware/auth.middleware')
+const { verifyAuth, verifyPermission, verifyAuthNoLimit } = require('../middleware/auth.middleware')
 const {
   create,
   search,
@@ -26,7 +26,7 @@ momentRouter.get('/praise', verifyAuth, praiseList)
 // 查询某一条动态
 momentRouter.get('/:momentId', getSingleMoment, detail)
 // 查询所有动态
-momentRouter.get('/plate/:plateId', getMultiMoment, list)
+momentRouter.get('/plate/:plateId', verifyAuthNoLimit, getMultiMoment, list)
 // 修改一条动态
 momentRouter.patch('/:momentId', verifyAuth, verifyPermission, update)
 // 删除一条动态

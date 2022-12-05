@@ -1,6 +1,12 @@
 const { getUserInfo } = require('../service/user.service')
 const { FORMAT_ERROR } = require('../constants/error-types')
-const { list, detail, search, getMomentTotal } = require('../service/moment.service')
+const {
+  list,
+  detail,
+  search,
+  getMomentTotal,
+  getPraisedList,
+} = require('../service/moment.service')
 const { isMyNaN } = require('../utils/common')
 const { getMomentListByPlate, getMomentByPlateCount } = require('../service/plate.service')
 const { APP_HOST, APP_PORT } = require('../app/config')
@@ -44,6 +50,14 @@ const getMultiMoment = async (ctx, next) => {
           return item
         })
       )
+      const { id: uid } = ctx.user
+      if (uid) {
+        const praiseList = (await getPraisedList(uid)).map((item) => item.momentId)
+        result = result.map((item) => {
+          item.isPraise = praiseList.some((praiseId) => praiseId === item.id)
+          return item
+        })
+      }
       ctx.result = result
     }
     ctx.total = total

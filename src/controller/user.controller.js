@@ -1,5 +1,6 @@
 const fs = require('fs')
 const { AVATAR_PATH } = require('../constants/file-types')
+const { getPraisedList, getMomentTotalByUser } = require('../service/moment.service')
 const {
   getAvatarInfo,
   care,
@@ -106,7 +107,19 @@ class User {
           return item
         })
       )
-      ctx.body = successBody(result)
+      const { id: uid } = ctx.user
+      if (uid) {
+        const praiseList = (await getPraisedList(uid)).map((item) => item.momentId)
+        result = result.map((item) => {
+          item.isPraise = praiseList.some((praiseId) => praiseId === item.id)
+          return item
+        })
+      }
+      const total = await getMomentTotalByUser(userId)
+      ctx.body = successBody({
+        total: total.count,
+        moments: result,
+      })
     } catch (e) {
       console.log(e)
     }

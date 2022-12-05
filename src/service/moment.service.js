@@ -143,6 +143,12 @@ class Moment {
     return result[0]
   }
 
+  async getMomentTotalByUser(uid) {
+    const statement = `select count(*) count from moment where user_id = ?`
+    const [result] = await connection.execute(statement, [uid])
+    return result[0]
+  }
+
   async getPraisedList(userId) {
     const statement = `
       select 

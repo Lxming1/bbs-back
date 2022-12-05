@@ -139,7 +139,7 @@ class User {
 
   async getMomentsByUser(userId, pagenum, pagesize) {
     const sqlFragment = momentSqlFragment
-    const statement = `${sqlFragment} where m.user_id = ? limit ?, ?`
+    const statement = `${sqlFragment} where m.user_id = ? order by updateTime desc limit ?, ?`
     const [result] = await connection.execute(statement, [
       userId,
       getOffset(pagenum, pagesize),

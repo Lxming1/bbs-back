@@ -5,10 +5,10 @@ const {
   update,
   createDetail,
   cancel,
-  collectDetail,
   findMomentInCollect,
+  delCollection,
 } = require('../service/collect.service')
-const { successBody, isMyNaN } = require('../utils/common')
+const { successBody } = require('../utils/common')
 
 class Collect {
   async create(ctx) {
@@ -25,11 +25,11 @@ class Collect {
   }
 
   async update(ctx) {
-    const { id } = ctx.user
     const { name, status } = ctx.request.body
+    const { collectId } = ctx.params
     if ([status, name].includes(undefined)) return
     try {
-      const result = await update(id, name, status)
+      const result = await update(collectId, name, status)
       ctx.body = successBody(result, '编辑成功')
     } catch (e) {
       console.log(e)
@@ -38,13 +38,14 @@ class Collect {
 
   async showCollectList(ctx) {
     const { uid, momentId } = ctx.query
-    if (!momentId) return
     let result = await getCollectByUID(uid)
-    const hasCollect = await findMomentInCollect(momentId, uid)
-    result = result.map((item) => {
-      item.isCollected = hasCollect.map((item1) => item1.id).includes(item.id)
-      return item
-    })
+    if (momentId) {
+      const hasCollect = await findMomentInCollect(momentId, uid)
+      result = result.map((item) => {
+        item.isCollected = hasCollect.map((item1) => item1.id).includes(item.id)
+        return item
+      })
+    }
     ctx.body = successBody(result)
   }
 
@@ -73,6 +74,16 @@ class Collect {
 
   async getCollectDetail(ctx) {
     ctx.body = successBody(ctx.result, '获取成功')
+  }
+
+  async delCollect(ctx) {
+    const { collectId } = ctx.params
+    try {
+      const result = await delCollection(collectId)
+      ctx.body = successBody(result, '删除成功')
+    } catch (e) {
+      console.log(e)
+    }
   }
 }
 

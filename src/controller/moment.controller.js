@@ -64,8 +64,8 @@ class Moment {
   // 删除动态
   async del(ctx, next) {
     const { momentId } = ctx.params
-    const result = await del(momentId)
-    ctx.body = successBody(result, '删除成功')
+    await del(momentId)
+    ctx.body = successBody(momentId, '删除成功')
   }
 
   async showPicture(ctx) {
