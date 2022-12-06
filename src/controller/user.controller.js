@@ -107,7 +107,7 @@ class User {
           return item
         })
       )
-      const { id: uid } = ctx.user
+      const uid = ctx?.user?.id
       if (uid) {
         const praiseList = (await getPraisedList(uid)).map((item) => item.momentId)
         result = result.map((item) => {

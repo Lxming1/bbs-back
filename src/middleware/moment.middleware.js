@@ -50,9 +50,9 @@ const getMultiMoment = async (ctx, next) => {
           return item
         })
       )
-      const { id: uid } = ctx.user
-      if (uid) {
-        const praiseList = (await getPraisedList(uid)).map((item) => item.momentId)
+      const userId = ctx?.user?.id
+      if (userId) {
+        const praiseList = (await getPraisedList(userId)).map((item) => item.momentId)
         result = result.map((item) => {
           item.isPraise = praiseList.some((praiseId) => praiseId === item.id)
           return item

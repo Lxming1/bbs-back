@@ -1,6 +1,11 @@
 const errorTypes = require('../constants/error-types')
 const redis = require('../utils/redis')
-const { getUserByEmail, getCareFansList, updateDetailInfo } = require('../service/user.service')
+const {
+  getUserByEmail,
+  getCareFansList,
+  updateDetailInfo,
+  getRelation,
+} = require('../service/user.service')
 const {
   md5handle,
   verifyEmail,
@@ -142,11 +147,22 @@ const setCareFansList = async (ctx, next) => {
     return ctx.app.emit('error', err, ctx)
   }
   const { userId, type } = ctx.params
-  if (!['care', 'fans'].includes || !userId) return
+  if (!['care', 'fans'].includes(type) || !userId) return
   const isFans = type === 'fans'
-  const fansIdList = await getCareFansList(userId, pagenum, pagesize, isFans)
-  const promiseArr = fansIdList.map(async (item) => await getUserInfo(item.id))
-  ctx.result = await Promise.all(promiseArr)
+  let userList = await getCareFansList(userId, pagenum, pagesize, isFans)
+  const promiseArr = userList.map(async (item) => await getUserInfo(item.id))
+  userList = await Promise.all(promiseArr)
+  const id = ctx?.user?.id
+  if (id) {
+    userList = await Promise.all(
+      userList.map(async (item) => {
+        const result = await getRelation(id, item.id)
+        item.relation = result
+        return item
+      })
+    )
+  }
+  ctx.result = userList
   await next()
 }
 

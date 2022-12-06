@@ -46,6 +46,10 @@ class Collect {
         return item
       })
     }
+    const id = ctx?.user?.id
+    if (!id || parseInt(id) !== parseInt(uid)) {
+      result = result.filter((item) => item.status === 0)
+    }
     ctx.body = successBody(result)
   }
 

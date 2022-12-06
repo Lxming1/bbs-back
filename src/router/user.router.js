@@ -49,7 +49,7 @@ userRouter.get('/:userId/moments', verifyAuthNoLimit, showMomentsByUser)
 // 获取用户个人信息
 userRouter.get('/:userId/detail', showUserInfo)
 // 获取粉丝或关注列表
-userRouter.get('/:userId/:type', setCareFansList, showCareFansList)
+userRouter.get('/:userId/:type', verifyAuthNoLimit, setCareFansList, showCareFansList)
 // 编辑资料
 userRouter.put('/', verifyAuth, handleUserInfo, edit)
 // 获取省市
