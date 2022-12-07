@@ -52,9 +52,24 @@ class User {
           'children', JSON_OBJECT('id', a1.id, 'name', a1.name),
           'parent', JSON_OBJECT('id', a2.id, 'name', a2.name)
         ) from address a1 left join address a2 on a1.pid = a2.id where a1.id = ud.address_id)) address,
-        (select count(*) from moment where user_id = id) momentCount,
-        (select count(*) from care_fans where to_uid = id) fansCount,
-        (select count(*) from care_fans where from_uid = id) careCount,
+        (select count(*) from moment where user_id = u.id) momentCount,
+        (select count(*) from care_fans where to_uid = u.id) fansCount,
+        (select count(*) from care_fans where from_uid = u.id) careCount,
+        (select count(*) 
+          from praise p 
+          join moment m on p.moment_id = m.id and comment_id = 0 
+          where m.user_id = u.id
+        ) momentLike,
+        (select count(*) 
+          from praise p 
+          join comment c on p.comment_id = c.id
+          where c.user_id = u.id
+        ) commentLike,
+        (select count(*) 
+          from collect_detail cd 
+          join moment m on cd.moment_id = m.id
+          where m.user_id = u.id
+        ) collectCount,
         ud.introduction, ud.avatar_url, u.create_at createTime, u.update_at updateTime
       from 
         users u
@@ -91,15 +106,23 @@ class User {
   }
 
   async getCareFansList(uid, pagenum, pagesize, isFans = true) {
-    const statement = `
+    const statement = isFans
+      ? `
       select 
         u.id from care_fans cf 
       join 
         users u 
       on 
-        cf.${isFans ? 'to' : 'from'}_uid = ? 
-      where 
-        cf.${!isFans ? 'to' : 'from'}_uid = u.id 
+        cf.to_uid = ? and cf.from_uid = u.id
+      limit ?, ?
+    `
+      : `
+      select 
+        u.id from care_fans cf 
+      join 
+        users u 
+      on 
+        cf.from_uid = ? and cf.to_uid = u.id
       limit ?, ?
     `
     const [result] = await connection.execute(statement, [
@@ -107,6 +130,7 @@ class User {
       getOffset(pagenum, pagesize),
       pagesize,
     ])
+    console.log(result)
     return result
   }
 

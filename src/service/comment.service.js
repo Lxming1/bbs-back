@@ -156,7 +156,15 @@ class Comment {
     try {
       const { uid: toUid } = result[0][0]
       if (toUid === userId) return res[0]
-      const statement = `
+      let statement = `
+        select *
+          from notices 
+        where 
+          moment_id = ? and comment_id = ? and from_uid = ? and user_id = ? and type = ?
+      `
+      result = await connection.execute(statement, [momentId, commentId, userId, toUid, 0])
+      if (result[0].length) return res[0]
+      statement = `
         insert into notices 
           (moment_id, comment_id, from_uid, user_id, type) 
         values

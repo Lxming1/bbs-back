@@ -116,7 +116,15 @@ class Moment {
       const { uid: toUid } = result[0][0]
       if (!res) return
       if (toUid === uid) return res[0]
-      const statement = `
+      let statement = `
+        select *
+          from notices 
+        where 
+          moment_id = ? and from_uid = ? and user_id = ? and type = ?
+      `
+      result = await connection.execute(statement, [momentId, uid, toUid, 0])
+      if (result[0].length) return res[0]
+      statement = `
         insert into notices 
           (moment_id, from_uid, user_id, type) 
         values

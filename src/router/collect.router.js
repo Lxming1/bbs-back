@@ -8,7 +8,7 @@ const {
   getCollectDetail,
   delCollect,
 } = require('../controller/collect.controller')
-const { verifyCollectStatus, handleCollectDetail } = require('../middleware/collect.middleware')
+const { handleCollectDetail } = require('../middleware/collect.middleware')
 const { verifyAuth, verifyPermission, verifyAuthNoLimit } = require('../middleware/auth.middleware')
 
 const collectRouter = new Router({ prefix: '/collect' })
@@ -26,6 +26,6 @@ collectRouter.post('/:collectId', verifyAuth, verifyPermission, createDetail)
 // 取消收藏
 collectRouter.delete('/:collectId', verifyAuth, verifyPermission, cancel)
 // 获取收藏夹明细
-collectRouter.get('/detail/:collectId', verifyCollectStatus, handleCollectDetail, getCollectDetail)
+collectRouter.get('/detail/:collectId', verifyAuthNoLimit, handleCollectDetail, getCollectDetail)
 
 module.exports = collectRouter

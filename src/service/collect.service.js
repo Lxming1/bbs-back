@@ -26,6 +26,18 @@ class Collect {
     return result
   }
 
+  async getCollectInfo(collectId) {
+    const statement = `
+      select 
+        id, name, user_id uid,
+        (select count(*) from collect_detail cd where cd.collect_id = c.id) count,
+        status, create_at createTime, update_at updateTime 
+      from collect c where id = ?
+    `
+    const [result] = await connection.execute(statement, [collectId])
+    return result[0]
+  }
+
   async createDetail(collectId, momentId) {
     const statement = `insert into collect_detail (moment_id, collect_id) values(?, ?)`
     const [result] = await connection.execute(statement, [momentId, collectId])

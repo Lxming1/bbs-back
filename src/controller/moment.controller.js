@@ -6,7 +6,6 @@ const {
   cancelPraise,
   getPicInfo,
   detail,
-  getPraiseCount,
 } = require('../service/moment.service')
 const { successBody } = require('../utils/common')
 const { PICTURE_PATH } = require('../constants/file-types')
