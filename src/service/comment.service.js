@@ -1,11 +1,6 @@
 const { getOffset } = require('../utils/common')
 const connection = require('../utils/database')
 class Comment {
-  /**
-   * @Author: Lxming
-   * @Date: 2022-11-21 00:11:16
-   * @Description: 回复评论、收藏的notice
-   */
   async create(content, momentId, uid) {
     const conn = await connection.getConnection()
     await conn.beginTransaction()
@@ -40,11 +35,11 @@ class Comment {
       if (toUid === uid) return res[0]
       const statement = `
         insert into notices 
-          (moment_id, from_uid, user_id, type) 
+          (moment_id, from_uid, user_id, content, type) 
         values
-          (?, ?, ?, ?)
+          (?, ?, ?, ?, ?)
       `
-      res = await connection.execute(statement, [momentId, uid, toUid, 1])
+      res = await connection.execute(statement, [momentId, uid, toUid, content, 1])
       await conn.commit()
     } catch (e) {
       console.log(e)
@@ -87,11 +82,12 @@ class Comment {
       if (toUid === uid) return res[0]
       const statement = `
         insert into notices 
-          (moment_id, comment_id, from_uid, user_id, type) 
+          (moment_id, comment_id, from_uid, user_id, content, type) 
         values
-          (?, ?, ?, ?, ?)
+          (?, ?, ?, ?, ?, ?)
       `
-      res = await connection.execute(statement, [momentId, commentId, uid, toUid, 1])
+      console.log(content)
+      res = await connection.execute(statement, [momentId, commentId, uid, toUid, content, 1])
       await conn.commit()
     } catch (e) {
       console.log(e)

@@ -48,10 +48,12 @@ class User {
     const statement = `
       select 
         u.id, u.email, ud.name, ud.birthday, ud.gender,
-        if(ud.address_id=null, null, (select JSON_OBJECT(
-          'children', JSON_OBJECT('id', a1.id, 'name', a1.name),
-          'parent', JSON_OBJECT('id', a2.id, 'name', a2.name)
-        ) from address a1 left join address a2 on a1.pid = a2.id where a1.id = ud.address_id)) address,
+        if(ud.address_id=null, null, (
+          select JSON_OBJECT(
+            'children', JSON_OBJECT('id', a1.id, 'name', a1.name),
+            'parent', JSON_OBJECT('id', a2.id, 'name', a2.name)
+          ) from address a1 left join address a2 on a1.pid = a2.id where a1.id = ud.address_id)
+        ) address,
         (select count(*) from moment where user_id = u.id) momentCount,
         (select count(*) from care_fans where to_uid = u.id) fansCount,
         (select count(*) from care_fans where from_uid = u.id) careCount,
@@ -70,6 +72,7 @@ class User {
           join moment m on cd.moment_id = m.id
           where m.user_id = u.id
         ) collectCount,
+        (select count(*) from notices n where n.user_id = u.id) noticeCount, 
         ud.introduction, ud.avatar_url, u.create_at createTime, u.update_at updateTime
       from 
         users u
@@ -94,9 +97,38 @@ class User {
   }
 
   async care(fromUid, toUid) {
-    const statement = `insert into care_fans (from_uid, to_uid) values(?, ?)`
-    const [result] = await connection.execute(statement, [fromUid, toUid])
-    return result
+    const conn = await connection.getConnection()
+    await conn.beginTransaction()
+    let statement, result, res
+    try {
+      statement = `insert into care_fans (from_uid, to_uid) values(?, ?)`
+      res = await connection.execute(statement, [fromUid, toUid])
+    } catch (e) {
+      console.log(e)
+      await conn.rollback()
+    }
+    statement = `
+      select *
+        from notices 
+      where 
+        from_uid = ? and user_id = ? and type = ?
+    `
+    result = await connection.execute(statement, [fromUid, toUid, 2])
+    if (result[0].length) return res[0]
+    try {
+      statement = `
+        insert into notices 
+          (from_uid, user_id, type) 
+        values
+          (?, ?, ?)
+      `
+      result = await connection.execute(statement, [fromUid, toUid, 2])
+      await conn.commit()
+    } catch (e) {
+      console.log(e)
+      await conn.rollback()
+    }
+    return res[0]
   }
 
   async cancelCare(fromUid, toUid) {
@@ -130,7 +162,6 @@ class User {
       getOffset(pagenum, pagesize),
       pagesize,
     ])
-    console.log(result)
     return result
   }
 

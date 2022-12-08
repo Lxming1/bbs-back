@@ -1,4 +1,5 @@
 const { getNotices } = require('../service/notices.service')
+const { getRelation } = require('../service/user.service')
 const { isMyNaN } = require('../utils/common')
 const handleNotices = async (ctx, next) => {
   const { pagenum, pagesize } = ctx.query
@@ -11,12 +12,21 @@ const handleNotices = async (ctx, next) => {
   const map = {
     praise: '0',
     reply: '1',
-    collect: '2',
+    follow: '2',
   }
   if (!map[type]) return
   const { id } = ctx.user
   try {
-    const result = await getNotices(id, map[type], pagenum, pagesize)
+    let result = await getNotices(id, map[type], pagenum, pagesize)
+    if (type === 'follow') {
+      result = await Promise.all(
+        result.map(async (item) => {
+          const relation = await getRelation(id, item.author.id)
+          item.author.relation = relation
+          return item
+        })
+      )
+    }
     ctx.result = result
     await next()
   } catch (e) {

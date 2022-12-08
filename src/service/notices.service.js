@@ -1,5 +1,6 @@
 const { getOffset } = require('../utils/common')
 const connection = require('../utils/database')
+const { APP_HOST, APP_PORT } = require('../app/config')
 
 class Notices {
   async read(noticeId, uid) {
@@ -17,20 +18,23 @@ class Notices {
   async getNotices(uid, type, pagenum, pagesize) {
     const statement = `
       select 
-        n.id, n.moment_id moment, 
-        (
+        n.id, if(moment_id=null, null, (
           select JSON_OBJECT(
             "id", m.id,
             "title", m.title,
             "content", m.content,
             "plateId", m.plate_id,
+            "images", (select 
+              JSON_ARRAYAGG(CONCAT('${APP_HOST}:${APP_PORT}/moment/image/', file.filename)) 
+              from file where m.id = file.moment_id limit 0, 1
+            ),
             "createTime", m.create_at,
             "updateTime", m.update_at
           ) from moment m 
           where m.id = n.moment_id
-        ) moment,
+        )) moment,
         if(
-          comment_id=0, null, (
+          comment_id=null, null, (
             select JSON_OBJECT(
               "id", id, 
               "content", content, 
@@ -43,11 +47,12 @@ class Notices {
           select JSON_OBJECT(
             "id", u.id, 
             "name", ud.name, 
+            "gender", ud.gender,
             "avatarUrl", ud.avatar_url
           ) from users u 
           join user_detail ud 
           on u.id = ud.user_id and u.id = n.from_uid
-        ) author, 
+        ) author, n.type, n.content,
         n.status, n.update_at updateTime, n.create_at createTime 
       from 
         notices n
