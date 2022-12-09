@@ -24,7 +24,7 @@ momentRouter.get('/search', searchMoment, search)
 // 获取点赞列表
 momentRouter.get('/praise', verifyAuth, praiseList)
 // 查询某一条动态
-momentRouter.get('/:momentId', getSingleMoment, detail)
+momentRouter.get('/:momentId', verifyAuthNoLimit, getSingleMoment, detail)
 // 查询所有动态
 momentRouter.get('/plate/:plateId', verifyAuthNoLimit, getMultiMoment, list)
 // 修改一条动态

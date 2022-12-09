@@ -69,6 +69,28 @@ class Notices {
     ])
     return result
   }
+
+  async getNoticeTotal(uid, type) {
+    const statement = 'select count(*) count from notices where type = ? and user_id = ?'
+    const [result] = await connection.execute(statement, [type, uid])
+    return result
+  }
+
+  async getNoticeCount(uid) {
+    const statement = `select count(*) count from notices n where n.user_id = ? and n.status = 0`
+    const [result] = await connection.execute(statement, [uid])
+    return result[0].count
+  }
+
+  async allNoticesCount(uid) {
+    const statement = `
+      select type, count(*) count 
+      from notices where user_id = ? and status = 0 
+      group by type
+    `
+    const [result] = await connection.execute(statement, [uid])
+    return result
+  }
 }
 
 module.exports = new Notices()

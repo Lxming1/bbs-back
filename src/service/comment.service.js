@@ -1,4 +1,3 @@
-const { getOffset } = require('../utils/common')
 const connection = require('../utils/database')
 class Comment {
   async create(content, momentId, uid) {
@@ -86,7 +85,6 @@ class Comment {
         values
           (?, ?, ?, ?, ?, ?)
       `
-      console.log(content)
       res = await connection.execute(statement, [momentId, commentId, uid, toUid, content, 1])
       await conn.commit()
     } catch (e) {

@@ -5,6 +5,7 @@ const {
   getCareFansList,
   updateDetailInfo,
   getRelation,
+  getFollowCount,
 } = require('../service/user.service')
 const {
   md5handle,
@@ -162,6 +163,8 @@ const setCareFansList = async (ctx, next) => {
       })
     )
   }
+  const count = await getFollowCount(userId, isFans)
+  ctx.total = count[0].count
   ctx.result = userList
   await next()
 }

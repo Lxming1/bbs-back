@@ -47,7 +47,7 @@ userRouter.delete('/:userId/care', verifyAuth, cancelCare)
 // 获取用户的动态
 userRouter.get('/:userId/moments', verifyAuthNoLimit, showMomentsByUser)
 // 获取用户个人信息
-userRouter.get('/:userId/detail', showUserInfo)
+userRouter.get('/:userId/detail/:type', verifyAuthNoLimit, showUserInfo)
 // 获取粉丝或关注列表
 userRouter.get('/:userId/:type', verifyAuthNoLimit, setCareFansList, showCareFansList)
 // 编辑资料

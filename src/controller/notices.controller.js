@@ -1,9 +1,12 @@
-const { read, del } = require('../service/notices.service')
+const { read, del, allNoticesCount } = require('../service/notices.service')
 const { successBody } = require('../utils/common')
 
 class Notices {
   async showNotices(ctx) {
-    ctx.body = successBody(ctx.result)
+    ctx.body = successBody({
+      noticeList: ctx.result,
+      total: ctx.total[0].count,
+    })
   }
 
   async readNotices(ctx) {

@@ -1,6 +1,7 @@
 const fs = require('fs')
 const { AVATAR_PATH } = require('../constants/file-types')
 const { getPraisedList, getMomentTotalByUser } = require('../service/moment.service')
+const { getNoticeCount, allNoticesCount } = require('../service/notices.service')
 const {
   getAvatarInfo,
   care,
@@ -60,7 +61,11 @@ class User {
 
   async showCareFansList(ctx) {
     const result = ctx.result
-    ctx.body = successBody(result)
+    const total = ctx.total
+    ctx.body = successBody({
+      total,
+      followList: result,
+    })
   }
 
   async edit(ctx) {
@@ -70,10 +75,30 @@ class User {
   }
 
   async showUserInfo(ctx) {
-    const { userId } = ctx.params
-    if (!userId) return
+    const { id } = ctx.user
+    const { userId, type } = ctx.params
+    if (!['profile', 'other'].includes(type)) return
     try {
-      const result = await getUserInfo(userId)
+      let result
+      if (type === 'other') {
+        result = await getUserInfo(userId)
+      } else {
+        result = await getUserInfo(id)
+        let noticeCount = await allNoticesCount(id)
+        const map = ['praise', 'reply', 'follow']
+        noticeCount = noticeCount.reduce(
+          (pre, value) => ({
+            ...pre,
+            [map[value.type]]: value.count,
+          }),
+          {}
+        )
+        map.forEach((item) => {
+          const key = noticeCount[item]
+          noticeCount[item] = !key ? 0 : key
+        })
+        result.noticeCount = noticeCount
+      }
       ctx.body = successBody(result)
     } catch (e) {
       console.log(e)
@@ -108,6 +133,10 @@ class User {
         })
       )
       const uid = ctx?.user?.id
+      // 不是本人则过滤掉匿名动态
+      if (parseInt(userId) !== uid) {
+        result = result.filter((item) => item.visible === 0)
+      }
       if (uid) {
         const praiseList = (await getPraisedList(uid)).map((item) => item.momentId)
         result = result.map((item) => {

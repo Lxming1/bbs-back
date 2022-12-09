@@ -1,6 +1,7 @@
-const { getNotices } = require('../service/notices.service')
+const { getNotices, getNoticeTotal } = require('../service/notices.service')
 const { getRelation } = require('../service/user.service')
 const { isMyNaN } = require('../utils/common')
+
 const handleNotices = async (ctx, next) => {
   const { pagenum, pagesize } = ctx.query
   if (isMyNaN(pagenum, pagesize)) return
@@ -27,6 +28,8 @@ const handleNotices = async (ctx, next) => {
         })
       )
     }
+    const total = await getNoticeTotal(id, map[type])
+    ctx.total = total
     ctx.result = result
     await next()
   } catch (e) {

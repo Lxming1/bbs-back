@@ -1,4 +1,4 @@
-const { getUserInfo } = require('../service/user.service')
+const { getUserInfo, getRelation } = require('../service/user.service')
 const { FORMAT_ERROR } = require('../constants/error-types')
 const {
   list,
@@ -35,7 +35,7 @@ const getMultiMoment = async (ctx, next) => {
       result = result.map((item) => {
         if (item.visible === 1) {
           item.author = {
-            id: item.author.id,
+            id: item.author,
             avatar_url: `${APP_HOST}:${APP_PORT}/users/0/avatar`,
             name: '匿名用户',
           }
@@ -74,7 +74,22 @@ const getSingleMoment = async (ctx, next) => {
     if (!result) {
       ctx.result = null
     } else {
-      result.author = await getUserInfo(result.author)
+      if (result.visible === 1) {
+        result.author = {
+          id: result.author,
+          avatar_url: `${APP_HOST}:${APP_PORT}/users/0/avatar`,
+          name: '匿名用户',
+        }
+      } else {
+        result.author = await getUserInfo(result.author)
+      }
+      const userId = ctx?.user?.id
+      if (userId) {
+        const praiseList = (await getPraisedList(userId)).map((item) => item.momentId)
+        result.isPraise = praiseList.some((praiseId) => praiseId === result.id)
+        const relation = await getRelation(userId, result.author.id)
+        result.author.relation = relation
+      }
       ctx.result = result
     }
     await next()

@@ -50,7 +50,7 @@ class Collect {
     return result
   }
 
-  async collectDetail(collectId, pagenum, pagesize) {
+  async collectDetail(collectId) {
     const statement = `
       SELECT 
         m.id id, content, title,
@@ -70,13 +70,9 @@ class Collect {
       ON m.plate_id = p.id 
       JOIN collect_detail cd 
       ON cd.moment_id = m.id
-      WHERE cd.collect_id = ? limit ?, ?
+      WHERE cd.collect_id = ?
     `
-    const [result] = await connection.execute(statement, [
-      collectId,
-      getOffset(pagenum, pagesize),
-      pagesize,
-    ])
+    const [result] = await connection.execute(statement, [collectId])
     return result
   }
 

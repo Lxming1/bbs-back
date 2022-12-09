@@ -72,7 +72,6 @@ class User {
           join moment m on cd.moment_id = m.id
           where m.user_id = u.id
         ) collectCount,
-        (select count(*) from notices n where n.user_id = u.id) noticeCount, 
         ud.introduction, ud.avatar_url, u.create_at createTime, u.update_at updateTime
       from 
         users u
@@ -216,6 +215,12 @@ class User {
     const [fan] = await connection.execute(statement, [otherId, myId])
     result.care = !!care[0]?.id
     result.fan = !!fan[0]?.id
+    return result
+  }
+
+  async getFollowCount(uid, isFans) {
+    const statement = `select count(*) count from care_fans where ${isFans ? 'to' : 'from'}_uid = ?`
+    const [result] = await connection.execute(statement, [uid])
     return result
   }
 }
