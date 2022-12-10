@@ -1,4 +1,10 @@
-const { list, verify, getCommentCount, getPraiseList } = require('../service/comment.service')
+const {
+  list,
+  verify,
+  getCommentCount,
+  getPraiseList,
+  verifyDelComment,
+} = require('../service/comment.service')
 const { getUserInfo } = require('../service/user.service')
 const { isMyNaN } = require('../utils/common')
 
@@ -37,7 +43,18 @@ const handleComment = async (ctx, next) => {
   }
 }
 
+const handleDelComment = async (ctx, next) => {
+  const { commentId } = ctx.params
+  const { id } = ctx.user
+  const { momentId } = ctx.request.body
+
+  if (await verifyDelComment(id, commentId, momentId)) {
+    await next()
+  }
+}
+
 module.exports = {
   verifyComment,
   handleComment,
+  handleDelComment,
 }

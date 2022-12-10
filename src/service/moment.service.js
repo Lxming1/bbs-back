@@ -77,16 +77,6 @@ class Moment {
     return result
   }
 
-  async search(content, pagenum, pagesize) {
-    const statement = `${sqlFragment} where content like ? order by updateTime desc limit ?, ?`
-    const [result] = await connection.execute(statement, [
-      `%${content}%`,
-      getOffset(pagenum, pagesize),
-      pagesize,
-    ])
-    return result
-  }
-
   async praise(uid, momentId) {
     const conn = await connection.getConnection()
     await conn.beginTransaction()
@@ -173,6 +163,23 @@ class Moment {
     const statement = 'select count(*) count from praise where moment_id = ?'
     const [result] = await connection.execute(statement, [momentId])
     return result[0]
+  }
+
+  async search(content, pagenum, pagesize) {
+    const statement = `${sqlFragment} where title like ? or content like ? order by updateTime desc limit ?, ?`
+    const [result] = await connection.execute(statement, [
+      `%${content}%`,
+      `%${content}%`,
+      getOffset(pagenum, pagesize),
+      pagesize,
+    ])
+    return result
+  }
+
+  async getSearchTotal(content) {
+    const statement = 'select count(*) count from moment where title like ? or content like ?'
+    const [result] = await connection.execute(statement, [`%${content}%`, `%${content}%`])
+    return result
   }
 }
 

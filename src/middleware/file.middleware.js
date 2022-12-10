@@ -4,7 +4,7 @@ const path = require('path')
 const jimp = require('jimp')
 
 const { AVATAR_PATH, PICTURE_PATH } = require('../constants/file-types')
-const { currentAvatar, rmAvatar, getPicByMoment } = require('../service/file.service')
+const { currentAvatar, rmAvatar, getPicByMoment, delMomentPic } = require('../service/file.service')
 
 // 配置上传位置
 const upload = Multer({
@@ -60,13 +60,22 @@ const resizePicture = async (ctx, next) => {
       image.resize(320, jimp.AUTO).write(`${destination}-small`)
     })
   }
-
   await next()
 }
+
+const delPicFromDB = async (ctx, next) => {
+  const images = ctx.request.body
+  const { momentId } = ctx.params
+  const { id } = ctx.user
+  await Promise.all(images.map((image) => delMomentPic(momentId, id, image)))
+  await next()
+}
+
 module.exports = {
   handleAvatar,
   handlePicture,
   rmExistAvatar,
   rmPicIfMomentHas,
   resizePicture,
+  delPicFromDB,
 }

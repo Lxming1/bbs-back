@@ -59,7 +59,7 @@ class User {
     ctx.body = successBody(result, '取消关注成功')
   }
 
-  async showCareFansList(ctx) {
+  async showUserList(ctx) {
     const result = ctx.result
     const total = ctx.total
     ctx.body = successBody({

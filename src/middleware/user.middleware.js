@@ -6,6 +6,8 @@ const {
   updateDetailInfo,
   getRelation,
   getFollowCount,
+  getUserBySearch,
+  getUserBySearchCount,
 } = require('../service/user.service')
 const {
   md5handle,
@@ -140,6 +142,37 @@ const verifyFindPassCode = async (ctx, next) => {
   await next()
 }
 
+const getSearchUserList = async (ctx, next) => {
+  const { pagenum, pagesize, content } = ctx.query
+  if (content === undefined) return
+  if (isMyNaN(pagenum, pagesize)) return
+  if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
+    const err = new Error(FORMAT_ERROR)
+    return ctx.app.emit('error', err, ctx)
+  }
+  try {
+    let userList = await getUserBySearch(content, pagenum, pagesize)
+    const promiseArr = userList.map(async (item) => await getUserInfo(item.uid))
+    userList = await Promise.all(promiseArr)
+    const id = ctx?.user?.id
+    if (id) {
+      userList = await Promise.all(
+        userList.map(async (item) => {
+          const result = await getRelation(id, item.id)
+          item.relation = result
+          return item
+        })
+      )
+    }
+    const count = await getUserBySearchCount(content)
+    ctx.total = count[0].count
+    ctx.result = userList
+    await next()
+  } catch (e) {
+    console.log(e)
+  }
+}
+
 const setCareFansList = async (ctx, next) => {
   const { pagenum, pagesize } = ctx.query
   if (isMyNaN(pagenum, pagesize)) return
@@ -192,4 +225,5 @@ module.exports = {
   verifyFindPassCode,
   setCareFansList,
   handleUserInfo,
+  getSearchUserList,
 }

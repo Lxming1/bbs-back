@@ -6,6 +6,7 @@ const {
   search,
   getMomentTotal,
   getPraisedList,
+  getSearchTotal,
 } = require('../service/moment.service')
 const { isMyNaN } = require('../utils/common')
 const { getMomentListByPlate, getMomentByPlateCount } = require('../service/plate.service')
@@ -98,8 +99,23 @@ const getSingleMoment = async (ctx, next) => {
   }
 }
 
+const getProfileMoment = async (ctx, next) => {
+  const { momentId } = ctx.params
+  try {
+    const result = (await detail(momentId))[0]
+    if (!result) {
+      ctx.result = null
+    } else {
+      ctx.result = result
+    }
+    await next()
+  } catch (err) {
+    console.log(err)
+  }
+}
+
 const searchMoment = async (ctx, next) => {
-  const { content, pagenum, pagesize } = ctx.query
+  const { pagenum, pagesize, content } = ctx.query
   if (content === undefined) return
   if (isMyNaN(pagenum, pagesize)) return
   if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
@@ -107,11 +123,36 @@ const searchMoment = async (ctx, next) => {
     return ctx.app.emit('error', err, ctx)
   }
   try {
-    const result = await search(content, pagenum, pagesize)
-    result.forEach(async (item) => {
-      item.author = await getUserInfo(item.author)
+    let result = await search(content, pagenum, pagesize)
+    const total = (await getSearchTotal(content))[0].count
+    result = result.map((item) => {
+      if (item.visible === 1) {
+        item.author = {
+          id: item.author,
+          avatar_url: `${APP_HOST}:${APP_PORT}/users/0/avatar`,
+          name: '匿名用户',
+        }
+      }
+      return item
     })
+    result = await Promise.all(
+      result.map(async (item) => {
+        if (item.visible === 0) {
+          item.author = await getUserInfo(item.author)
+        }
+        return item
+      })
+    )
+    const userId = ctx?.user?.id
+    if (userId) {
+      const praiseList = (await getPraisedList(userId)).map((item) => item.momentId)
+      result = result.map((item) => {
+        item.isPraise = praiseList.some((praiseId) => praiseId === item.id)
+        return item
+      })
+    }
     ctx.result = result
+    ctx.total = total
     await next()
   } catch (e) {
     console.log(e)
@@ -122,4 +163,5 @@ module.exports = {
   getMultiMoment,
   getSingleMoment,
   searchMoment,
+  getProfileMoment,
 }

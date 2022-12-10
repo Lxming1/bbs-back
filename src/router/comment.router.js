@@ -7,8 +7,12 @@ const {
   pariseComment,
   cancelPariseComment,
 } = require('../controller/comment.controller')
-const { verifyAuth, verifyPermission, verifyAuthNoLimit } = require('../middleware/auth.middleware')
-const { verifyComment, handleComment } = require('../middleware/comment.middleware')
+const { verifyAuth, verifyAuthNoLimit } = require('../middleware/auth.middleware')
+const {
+  verifyComment,
+  handleDelComment,
+  handleComment,
+} = require('../middleware/comment.middleware')
 
 const commentRouter = new Router({ prefix: '/comment' })
 
@@ -21,7 +25,7 @@ commentRouter.delete('/:commentId/praise', verifyAuth, verifyComment, cancelPari
 // 回复评论
 commentRouter.post('/:commentId/reply', verifyAuth, verifyComment, reply)
 // 删除评论
-commentRouter.delete('/:commentId', verifyAuth, verifyPermission, del)
+commentRouter.delete('/:commentId', verifyAuth, handleDelComment, del)
 // 获取评论列表
 commentRouter.get('/', verifyAuthNoLimit, handleComment, list)
 

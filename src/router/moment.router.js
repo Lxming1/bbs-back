@@ -12,7 +12,12 @@ const {
   praiseList,
   cancelPraiseMoment,
 } = require('../controller/moment.controller.js')
-const { getMultiMoment, getSingleMoment, searchMoment } = require('../middleware/moment.middleware')
+const {
+  getMultiMoment,
+  getSingleMoment,
+  searchMoment,
+  getProfileMoment,
+} = require('../middleware/moment.middleware')
 const { rmPicIfMomentHas } = require('../middleware/file.middleware')
 
 const momentRouter = new Router({ prefix: '/moment' })
@@ -25,6 +30,8 @@ momentRouter.get('/search', searchMoment, search)
 momentRouter.get('/praise', verifyAuth, praiseList)
 // 查询某一条动态
 momentRouter.get('/:momentId', verifyAuthNoLimit, getSingleMoment, detail)
+// 查询个人动态编辑
+momentRouter.get('/profile/:momentId', verifyAuth, verifyPermission, getProfileMoment, detail)
 // 查询所有动态
 momentRouter.get('/plate/:plateId', verifyAuthNoLimit, getMultiMoment, list)
 // 修改一条动态

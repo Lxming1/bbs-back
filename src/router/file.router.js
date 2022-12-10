@@ -1,11 +1,12 @@
 const Router = require('koa-router')
-const { verifyAuth } = require('../middleware/auth.middleware')
-const { saveAvatar, savePicture } = require('../controller/file.controller')
+const { verifyAuth, verifyPermission } = require('../middleware/auth.middleware')
+const { saveAvatar, savePicture, delPicFromLocal } = require('../controller/file.controller')
 const {
   handleAvatar,
   rmExistAvatar,
   handlePicture,
   resizePicture,
+  delPicFromDB,
 } = require('../middleware/file.middleware')
 
 const uploadRouter = new Router({ prefix: '/upload' })
@@ -14,5 +15,7 @@ const uploadRouter = new Router({ prefix: '/upload' })
 uploadRouter.post('/avatar', verifyAuth, rmExistAvatar, handleAvatar, saveAvatar)
 // 上传动态配图
 uploadRouter.post('/picture', verifyAuth, handlePicture, resizePicture, savePicture)
+// 删除动态图片
+uploadRouter.del('/picture/:momentId', verifyAuth, verifyPermission, delPicFromDB, delPicFromLocal)
 
 module.exports = uploadRouter

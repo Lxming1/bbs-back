@@ -34,11 +34,11 @@ class Comment {
       if (toUid === uid) return res[0]
       const statement = `
         insert into notices 
-          (moment_id, from_uid, user_id, content, type) 
+          (moment_id, from_uid, user_id, content_id, type) 
         values
           (?, ?, ?, ?, ?)
       `
-      res = await connection.execute(statement, [momentId, uid, toUid, content, 1])
+      res = await connection.execute(statement, [momentId, uid, toUid, res[0].insertId, 1])
       await conn.commit()
     } catch (e) {
       console.log(e)
@@ -81,11 +81,18 @@ class Comment {
       if (toUid === uid) return res[0]
       const statement = `
         insert into notices 
-          (moment_id, comment_id, from_uid, user_id, content, type) 
+          (moment_id, comment_id, from_uid, user_id, content_id, type) 
         values
           (?, ?, ?, ?, ?, ?)
       `
-      res = await connection.execute(statement, [momentId, commentId, uid, toUid, content, 1])
+      res = await connection.execute(statement, [
+        momentId,
+        commentId,
+        uid,
+        toUid,
+        res[0].insertId,
+        1,
+      ])
       await conn.commit()
     } catch (e) {
       console.log(e)
@@ -199,6 +206,25 @@ class Comment {
     `
     const [result] = await connection.execute(statement, [userId])
     return result
+  }
+
+  async verifyDelComment(uid, commentId, momentId) {
+    let statement = `
+      select count(*) count from comment where user_id = ? and id = ?
+    `
+    let [result] = await connection.execute(statement, [uid, commentId])
+    if (result[0].count === 1) return true
+
+    statement = `
+      select count(*) count 
+      from comment c 
+      join moment m 
+      on c.id = ? and c.moment_id = m.id 
+      where m.id = ? and m.user_id = ?
+    `
+    ;[result] = await connection.execute(statement, [commentId, momentId, uid])
+    if (result[0].count === 1) return true
+    return false
   }
 }
 

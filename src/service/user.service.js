@@ -223,6 +223,22 @@ class User {
     const [result] = await connection.execute(statement, [uid])
     return result
   }
+
+  async getUserBySearch(content, pagenum, pagesize) {
+    const statement = `select user_id uid from user_detail where name like ? limit ?, ?`
+    const [result] = await connection.execute(statement, [
+      `%${content}%`,
+      getOffset(pagenum, pagesize),
+      pagesize,
+    ])
+    return result
+  }
+
+  async getUserBySearchCount(content) {
+    const statement = `select count(*) count from user_detail where name like ?`
+    const [result] = await connection.execute(statement, [`%${content}%`])
+    return result
+  }
 }
 
 module.exports = new User()

@@ -34,7 +34,11 @@ class Moment {
 
   async search(ctx) {
     const result = ctx.result
-    ctx.body = successBody(result)
+    const total = ctx.total
+    ctx.body = successBody({
+      moments: result,
+      total,
+    })
   }
 
   // 查询一条动态

@@ -1,3 +1,4 @@
+const { getPraiseList } = require('../service/comment.service')
 const { getNotices, getNoticeTotal } = require('../service/notices.service')
 const { getRelation } = require('../service/user.service')
 const { isMyNaN } = require('../utils/common')
@@ -27,6 +28,14 @@ const handleNotices = async (ctx, next) => {
           return item
         })
       )
+    }
+    if (type === 'reply' && result.length) {
+      let praiseList = await getPraiseList(id)
+      praiseList = praiseList.map((item) => item.commentId).filter(Boolean)
+      result = result.map((item) => {
+        item.isPraise = praiseList.includes(item.content.id)
+        return item
+      })
     }
     const total = await getNoticeTotal(id, map[type])
     ctx.total = total

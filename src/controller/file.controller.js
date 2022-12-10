@@ -3,6 +3,8 @@ const { saveFileInfo, savaAvatar, savePicInfo } = require('../service/file.servi
 const { detail } = require('../service/moment.service')
 const { getUserInfo } = require('../service/user.service')
 const { successBody } = require('../utils/common')
+const { PICTURE_PATH } = require('../constants/file-types')
+const fs = require('fs')
 
 class FileController {
   async saveAvatar(ctx) {
@@ -38,6 +40,21 @@ class FileController {
       moment.author = await getUserInfo(moment.author)
     }
     ctx.body = successBody(moment, '发表动态成功')
+  }
+
+  async delPicFromLocal(ctx) {
+    const images = ctx.request.body
+    const promiseArr = images.map(async (item) => {
+      const picPath = `${PICTURE_PATH}/${item}`
+      const promiseArr = [
+        fs.promises.rm(picPath),
+        fs.promises.rm(`${picPath}-large`),
+        fs.promises.rm(`${picPath}-small`),
+      ]
+      await Promise.all(promiseArr)
+    })
+    await Promise.all(promiseArr)
+    ctx.body = successBody({}, '删除成功')
   }
 }
 

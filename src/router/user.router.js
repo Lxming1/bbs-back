@@ -5,7 +5,7 @@ const {
   reactive,
   care,
   cancelCare,
-  showCareFansList,
+  showUserList,
   edit,
   showUserInfo,
   changPass,
@@ -25,6 +25,7 @@ const {
   findPassSendEmail,
   verifyFindPassCode,
   verifyUEmailFind,
+  getSearchUserList,
 } = require('../middleware/user.middleware')
 
 const userRouter = new Router({ prefix: '/users' })
@@ -49,10 +50,12 @@ userRouter.get('/:userId/moments', verifyAuthNoLimit, showMomentsByUser)
 // 获取用户个人信息
 userRouter.get('/:userId/detail/:type', verifyAuthNoLimit, showUserInfo)
 // 获取粉丝或关注列表
-userRouter.get('/:userId/:type', verifyAuthNoLimit, setCareFansList, showCareFansList)
+userRouter.get('/:userId/:type', verifyAuthNoLimit, setCareFansList, showUserList)
 // 编辑资料
 userRouter.put('/', verifyAuth, handleUserInfo, edit)
 // 获取省市
 userRouter.get('/address', addressList)
+// 搜索用户
+userRouter.get('/search', verifyAuthNoLimit, getSearchUserList, showUserList)
 
 module.exports = userRouter

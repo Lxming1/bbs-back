@@ -43,6 +43,14 @@ class Notices {
             ) from comment where id = n.comment_id
           )
         ) comment, 
+        if(
+          content_id=null, null, (
+            select JSON_OBJECT(
+              "id", id, 
+              "content", content
+            ) from comment where id = n.content_id
+          )
+        ) content,
         (
           select JSON_OBJECT(
             "id", u.id, 
@@ -52,7 +60,7 @@ class Notices {
           ) from users u 
           join user_detail ud 
           on u.id = ud.user_id and u.id = n.from_uid
-        ) author, n.type, n.content,
+        ) author, n.type,
         n.status, n.update_at updateTime, n.create_at createTime 
       from 
         notices n

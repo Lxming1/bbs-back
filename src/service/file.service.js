@@ -45,8 +45,14 @@ class FileService {
   }
 
   async getPicByMoment(momentId, uid) {
-    const statement = `select * from file  where moment_id = ? and user_id = ?`
+    const statement = `select * from file where moment_id = ? and user_id = ?`
     const [result] = await connection.execute(statement, [momentId, uid])
+    return result
+  }
+
+  async delMomentPic(momentId, uid, filename) {
+    const statement = `delete from file where moment_id = ? and user_id = ? and filename = ?`
+    const [result] = await connection.execute(statement, [momentId, uid, filename])
     return result
   }
 }
