@@ -239,6 +239,20 @@ class User {
     const [result] = await connection.execute(statement, [`%${content}%`])
     return result
   }
+
+  async getUserTopList(count = 3) {
+    const statement = `
+      select u.id, count(*) count 
+      from users u 
+      join care_fans cf 
+      on cf.to_uid = u.id 
+      group by u.id 
+      order by count desc 
+      limit 0, ?
+    `
+    const [result] = await connection.execute(statement, [count])
+    return result
+  }
 }
 
 module.exports = new User()

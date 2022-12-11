@@ -17,6 +17,7 @@ const {
   getSingleMoment,
   searchMoment,
   getProfileMoment,
+  getCareMoments,
 } = require('../middleware/moment.middleware')
 const { rmPicIfMomentHas } = require('../middleware/file.middleware')
 
@@ -28,6 +29,8 @@ momentRouter.post('/', verifyAuth, create)
 momentRouter.get('/search', searchMoment, search)
 // 获取点赞列表
 momentRouter.get('/praise', verifyAuth, praiseList)
+// 关注的用户的动态
+momentRouter.get('/care', verifyAuth, getCareMoments, search)
 // 查询某一条动态
 momentRouter.get('/:momentId', verifyAuthNoLimit, getSingleMoment, detail)
 // 查询个人动态编辑

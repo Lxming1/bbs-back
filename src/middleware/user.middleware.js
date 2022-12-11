@@ -8,6 +8,7 @@ const {
   getFollowCount,
   getUserBySearch,
   getUserBySearchCount,
+  getUserTopList,
 } = require('../service/user.service')
 const {
   md5handle,

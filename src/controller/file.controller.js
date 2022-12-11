@@ -14,8 +14,8 @@ class FileController {
     // 将图像地址存入用户数据库
     await savaAvatar(`${APP_HOST}:${APP_PORT}/users/${id}/avatar`, id)
     // 将图像信息保存到数据库
-    const result = await saveFileInfo(filename, mimetype, size, id)
-    ctx.body = successBody(result, '上传头像成功')
+    await saveFileInfo(filename, mimetype, size, id)
+    ctx.body = successBody(`${APP_HOST}:${APP_PORT}/users/${id}/avatar`, '上传头像成功')
   }
 
   async savePicture(ctx) {

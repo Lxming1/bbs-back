@@ -7,6 +7,8 @@ const {
   getMomentTotal,
   getPraisedList,
   getSearchTotal,
+  careMoments,
+  careMomentsCount,
 } = require('../service/moment.service')
 const { isMyNaN } = require('../utils/common')
 const { getMomentListByPlate, getMomentByPlateCount } = require('../service/plate.service')
@@ -27,7 +29,7 @@ const getMultiMoment = async (ctx, next) => {
       total = (await getMomentTotal()).count
     } else {
       result = await getMomentListByPlate(plateId, pagenum, pagesize)
-      total = (await getMomentByPlateCount(plateId)).count
+      total = (await getMomentByPlateCount(plateId))[0].count
     }
     if (!result) {
       ctx.result = []
@@ -159,9 +161,40 @@ const searchMoment = async (ctx, next) => {
   }
 }
 
+const getCareMoments = async (ctx, next) => {
+  const { pagenum, pagesize } = ctx.query
+  if (isMyNaN(pagenum, pagesize)) return
+  if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
+    const err = new Error(FORMAT_ERROR)
+    return ctx.app.emit('error', err, ctx)
+  }
+  const userId = ctx.user.id
+  try {
+    let result = await careMoments(userId, pagenum, pagesize)
+    const total = (await careMomentsCount(userId))[0].count
+    result = await Promise.all(
+      result.map(async (item) => {
+        item.author = await getUserInfo(item.author)
+        return item
+      })
+    )
+    const praiseList = (await getPraisedList(userId)).map((item) => item.momentId)
+    result = result.map((item) => {
+      item.isPraise = praiseList.some((praiseId) => praiseId === item.id)
+      return item
+    })
+    ctx.result = result
+    ctx.total = total
+    await next()
+  } catch (e) {
+    console.log(e)
+  }
+}
+
 module.exports = {
   getMultiMoment,
   getSingleMoment,
   searchMoment,
   getProfileMoment,
+  getCareMoments,
 }

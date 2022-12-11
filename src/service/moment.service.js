@@ -181,6 +181,34 @@ class Moment {
     const [result] = await connection.execute(statement, [`%${content}%`, `%${content}%`])
     return result
   }
+
+  async careMoments(uid, pagenum, pagesize) {
+    const statement = `
+      ${sqlFragment} 
+      join care_fans cf 
+      on cf.from_uid = ? and cf.to_uid = m.user_id
+      where m.visible = 0
+      order by updateTime desc 
+      limit ?, ?
+    `
+    const [result] = await connection.execute(statement, [
+      uid,
+      getOffset(pagenum, pagesize),
+      pagesize,
+    ])
+    return result
+  }
+
+  async careMomentsCount(uid) {
+    const statement = `
+      select count(*) count from moment m
+      join care_fans cf 
+      on cf.from_uid = ? and cf.to_uid = m.user_id
+      where m.visible = 0
+    `
+    const [result] = await connection.execute(statement, [uid])
+    return result
+  }
 }
 
 module.exports = new Moment()

@@ -12,6 +12,7 @@ const {
   getMomentsByUser,
   getAddress,
   getRelation,
+  getUserTopList,
 } = require('../service/user.service')
 const { successMes, successBody, isMyNaN } = require('../utils/common')
 const redis = require('../utils/redis')
@@ -75,7 +76,6 @@ class User {
   }
 
   async showUserInfo(ctx) {
-    const { id } = ctx.user
     const { userId, type } = ctx.params
     if (!['profile', 'other'].includes(type)) return
     try {
@@ -83,6 +83,7 @@ class User {
       if (type === 'other') {
         result = await getUserInfo(userId)
       } else {
+        const { id } = ctx.user
         result = await getUserInfo(id)
         let noticeCount = await allNoticesCount(id)
         const map = ['praise', 'reply', 'follow']
@@ -182,6 +183,24 @@ class User {
     if (parseInt(uid) === id) return
     const result = await getRelation(id, uid)
     ctx.body = successBody(result)
+  }
+
+  async userTopList(ctx) {
+    let { count } = ctx.params
+    let userList = await getUserTopList(count)
+    const id = ctx?.user?.id
+    const promiseArr = userList.map(async (item) => await getUserInfo(item.id))
+    userList = await Promise.all(promiseArr)
+    if (id) {
+      userList = await Promise.all(
+        userList.map(async (item) => {
+          const result = await getRelation(id, item.id)
+          item.relation = result
+          return item
+        })
+      )
+    }
+    ctx.body = successBody(userList)
   }
 }
 

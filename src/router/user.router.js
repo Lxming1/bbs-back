@@ -12,6 +12,7 @@ const {
   showMomentsByUser,
   addressList,
   careFanRelation,
+  userTopList,
 } = require('../controller/user.controller')
 const { verifyAuth, verifyAuthNoLimit } = require('../middleware/auth.middleware')
 const {
@@ -37,6 +38,8 @@ userRouter.post('/', verifyUEmail, verifyCode, verifyPass, handlePassword, creat
 userRouter.post('/sendemail-find', verifyUEmailFind, findPassSendEmail, reactive)
 // 修改密码
 userRouter.patch('/', verifyUEmailFind, verifyFindPassCode, verifyPass, handlePassword, changPass)
+// 获取用户榜单
+userRouter.get('/toplist/:count', verifyAuthNoLimit, userTopList)
 // 查询粉丝关注关系
 userRouter.get('/care_fan/:uid', verifyAuth, careFanRelation)
 // 获取头像

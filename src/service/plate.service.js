@@ -20,9 +20,9 @@ class Plate {
   }
 
   async getMomentByPlateCount(plateId) {
-    const statement = `select count(*) count from plate where id = ?`
-    let result = await connection.execute(statement, [plateId])
-    return result[0]
+    const statement = `select count(*) count from moment where plate_id = ?`
+    let [result] = await connection.execute(statement, [plateId])
+    return result
   }
 }
 
