@@ -23,7 +23,7 @@ const handleComment = async (ctx, next) => {
   const { id: userId } = ctx.user
   if (!momentId) return
   try {
-    const result = await list(momentId)
+    let result = await list(momentId)
     const promiseArr = result.map(async (item) => {
       item.author = await getUserInfo(item.author)
       return item
@@ -35,6 +35,13 @@ const handleComment = async (ctx, next) => {
       praiseList = praiseList.map((item) => item.commentId).filter(Boolean)
       ctx.praiseList = praiseList
     }
+    result = result.map((item) => {
+      console.log(item)
+      if (item.status === 1) {
+        item.content = null
+      }
+      return item
+    })
     ctx.total = total[0].count
     ctx.result = result
     await next()

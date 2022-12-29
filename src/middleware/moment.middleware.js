@@ -35,19 +35,15 @@ const getMultiMoment = async (ctx, next) => {
       ctx.result = []
       ctx.total = 0
     } else {
-      result = result.map((item) => {
-        if (item.visible === 1) {
-          item.author = {
-            id: item.author,
-            avatar_url: `${APP_HOST}:${APP_PORT}/users/0/avatar`,
-            name: '匿名用户',
-          }
-        }
-        return item
-      })
       result = await Promise.all(
         result.map(async (item) => {
-          if (item.visible === 0) {
+          if (item.visible === 1) {
+            item.author = {
+              id: item.author,
+              avatar_url: `${APP_HOST}:${APP_PORT}/users/0/avatar`,
+              name: '匿名用户',
+            }
+          } else {
             item.author = await getUserInfo(item.author)
           }
           return item

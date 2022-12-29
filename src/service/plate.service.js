@@ -10,7 +10,9 @@ class Plate {
   }
 
   async getMomentListByPlate(plateId, pagenum, pagesize) {
-    const statement = `${momentSqlFragment} where m.plate_id = ? order by updateTime desc limit ?, ?`
+    const statement = `
+      ${momentSqlFragment} where m.plate_id = ? and status = 1 order by updateTime desc limit ?, ?
+    `
     let result = await connection.execute(statement, [
       plateId,
       getOffset(pagenum, pagesize),
@@ -20,7 +22,7 @@ class Plate {
   }
 
   async getMomentByPlateCount(plateId) {
-    const statement = `select count(*) count from moment where plate_id = ?`
+    const statement = `select count(*) count from moment where plate_id = ? and status = 1`
     let [result] = await connection.execute(statement, [plateId])
     return result
   }

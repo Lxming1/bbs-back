@@ -43,7 +43,7 @@ class Moment {
 
   async list(pagesize, pagenum) {
     const statement = `
-      ${sqlFragment} GROUP BY m.id ORDER BY updateTime desc LIMIT ?, ?
+      ${sqlFragment} where status = 1 GROUP BY m.id ORDER BY updateTime desc LIMIT ?, ?
     `
     try {
       const [result] = await connection.execute(statement, [getOffset(pagenum, pagesize), pagesize])
@@ -54,7 +54,10 @@ class Moment {
   }
 
   async update(momentId, title, content, plateId, visible) {
-    const statement = `update moment set title = ?, content = ?, plate_id = ?, visible = ? where id = ?`
+    const statement = `
+      update moment 
+      set title = ?, content = ?, plate_id = ?, visible = ?, status = 0 where id = ?
+    `
     const [result] = await connection.execute(statement, [
       title,
       content,
@@ -136,14 +139,8 @@ class Moment {
   }
 
   async getMomentTotal() {
-    const statement = `select count(*) count from moment`
+    const statement = `select count(*) count from moment where status = 1`
     const [result] = await connection.execute(statement)
-    return result[0]
-  }
-
-  async getMomentTotalByUser(uid) {
-    const statement = `select count(*) count from moment where user_id = ?`
-    const [result] = await connection.execute(statement, [uid])
     return result[0]
   }
 
@@ -160,13 +157,21 @@ class Moment {
   }
 
   async getPraiseCount(momentId) {
-    const statement = 'select count(*) count from praise where moment_id = ?'
+    const statement = `
+      select count(*) count from praise p join moment m 
+      on m.id = p.moment_id and m.status = 1 where p.moment_id = ?
+    `
     const [result] = await connection.execute(statement, [momentId])
     return result[0]
   }
 
   async search(content, pagenum, pagesize) {
-    const statement = `${sqlFragment} where title like ? or content like ? order by updateTime desc limit ?, ?`
+    const statement = `
+      ${sqlFragment} 
+      where title like ? or content like ? and status = 1 
+      order by updateTime desc 
+      limit ?, ?
+    `
     const [result] = await connection.execute(statement, [
       `%${content}%`,
       `%${content}%`,
@@ -177,7 +182,9 @@ class Moment {
   }
 
   async getSearchTotal(content) {
-    const statement = 'select count(*) count from moment where title like ? or content like ?'
+    const statement = `
+      select count(*) count from moment where title like ? or content like ? and status = 1
+    `
     const [result] = await connection.execute(statement, [`%${content}%`, `%${content}%`])
     return result
   }

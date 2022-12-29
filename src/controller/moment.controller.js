@@ -18,18 +18,7 @@ class Moment {
     const { id } = ctx.user
     const { title, content, plateId, visible } = ctx.request.body
     const result = await create(title, content, id, plateId, visible)
-    let moment = (await detail(result.insertId))[0]
-    if (moment.visible === 1) {
-      moment.author = {
-        id: moment.author.id,
-        avatar_url: `${APP_HOST}:${APP_PORT}/users/0/avatar`,
-        name: '匿名用户',
-      }
-    } else {
-      moment.author = await getUserInfo(moment.author)
-    }
-
-    ctx.body = successBody(moment, '发表动态成功')
+    ctx.body = successBody(result, '发布成功，请等待审核')
   }
 
   async search(ctx) {
@@ -61,7 +50,7 @@ class Moment {
     const { momentId } = ctx.params
     const { title, content, plateId, visible } = ctx.request.body
     const result = await update(momentId, title, content, plateId, visible)
-    ctx.body = successBody(result, '编辑成功')
+    ctx.body = successBody(result, '编辑成功，请等待审核')
   }
 
   // 删除动态

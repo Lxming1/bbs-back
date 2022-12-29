@@ -1,7 +1,7 @@
 const fs = require('fs')
 const { AVATAR_PATH } = require('../constants/file-types')
-const { getPraisedList, getMomentTotalByUser } = require('../service/moment.service')
-const { getNoticeCount, allNoticesCount } = require('../service/notices.service')
+const { getPraisedList } = require('../service/moment.service')
+const { allNoticesCount } = require('../service/notices.service')
 const {
   getAvatarInfo,
   care,
@@ -13,6 +13,7 @@ const {
   getAddress,
   getRelation,
   getUserTopList,
+  getMomentTotalByUser,
 } = require('../service/user.service')
 const { successMes, successBody, isMyNaN } = require('../utils/common')
 const redis = require('../utils/redis')
@@ -118,25 +119,30 @@ class User {
   }
 
   async showMomentsByUser(ctx) {
-    const { pagenum, pagesize } = ctx.query
+    const { pagenum, pagesize, type } = ctx.query
     if (isMyNaN(pagenum, pagesize)) return
     if (parseInt(pagenum) < 0 || parseInt(pagesize) < 0) {
       const err = new Error(FORMAT_ERROR)
       return ctx.app.emit('error', err, ctx)
     }
+    if (!['pass', 'await', 'failed'].includes(type)) return
     const { userId } = ctx.params
+    const uid = ctx?.user?.id
     try {
-      let result = await getMomentsByUser(userId, pagenum, pagesize)
-      result = await Promise.all(
-        result.map(async (item) => {
-          item.author = await getUserInfo(item.author)
-          return item
-        })
-      )
-      const uid = ctx?.user?.id
-      // 不是本人则过滤掉匿名动态
+      let result = await getMomentsByUser(userId, pagenum, pagesize, type)
+      let total = 0
       if (parseInt(userId) !== uid) {
+        if (type !== 'pass') {
+          ctx.body = successBody({
+            total: 0,
+            moments: [],
+          })
+          return
+        }
         result = result.filter((item) => item.visible === 0)
+        total = await getMomentTotalByUser(userId, type, false)
+      } else {
+        total = await getMomentTotalByUser(userId, type)
       }
       if (uid) {
         const praiseList = (await getPraisedList(uid)).map((item) => item.momentId)
@@ -145,7 +151,13 @@ class User {
           return item
         })
       }
-      const total = await getMomentTotalByUser(userId)
+      result = await Promise.all(
+        result.map(async (item) => {
+          const isProfile = uid && item.author === uid
+          item.author = await getUserInfo(item.author, isProfile)
+          return item
+        })
+      )
       ctx.body = successBody({
         total: total.count,
         moments: result,

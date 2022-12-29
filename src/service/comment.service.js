@@ -121,7 +121,7 @@ class Comment {
       SELECT 
         c.id id, c.content content, c.comment_id commentId, c.user_id author,
         (select count(*) from praise p where p.comment_id = c.id) praiseCount,
-        c.create_at createTime, c.update_at updateTime 
+        c.status, c.create_at createTime, c.update_at updateTime 
       FROM comment c 
       where c.moment_id = ?
     `

@@ -44,7 +44,7 @@ class User {
     return result[0]
   }
 
-  async getUserInfo(id) {
+  async getUserInfo(id, isProfile = false) {
     const statement = `
       select 
         u.id, u.email, ud.name, ud.birthday, ud.gender,
@@ -54,7 +54,9 @@ class User {
             'parent', JSON_OBJECT('id', a2.id, 'name', a2.name)
           ) from address a1 left join address a2 on a1.pid = a2.id where a1.id = ud.address_id)
         ) address,
-        (select count(*) from moment where user_id = u.id) momentCount,
+        (select count(*) from moment where user_id = u.id and status = 1 ${
+          !isProfile ? 'and visible = 0' : ''
+        }) momentCount,
         (select count(*) from care_fans where to_uid = u.id) fansCount,
         (select count(*) from care_fans where from_uid = u.id) careCount,
         (select count(*) 
@@ -110,18 +112,18 @@ class User {
       select *
         from notices 
       where 
-        from_uid = ? and user_id = ? and type = ?
+        from_uid = ? and user_id = ? and type = 2
     `
-    result = await connection.execute(statement, [fromUid, toUid, 2])
+    result = await connection.execute(statement, [fromUid, toUid])
     if (result[0].length) return res[0]
     try {
       statement = `
         insert into notices 
           (from_uid, user_id, type) 
         values
-          (?, ?, ?)
+          (?, ?, 2)
       `
-      result = await connection.execute(statement, [fromUid, toUid, 2])
+      result = await connection.execute(statement, [fromUid, toUid])
       await conn.commit()
     } catch (e) {
       console.log(e)
@@ -191,15 +193,35 @@ class User {
     return result
   }
 
-  async getMomentsByUser(userId, pagenum, pagesize) {
+  async getMomentsByUser(userId, pagenum, pagesize, type) {
     const sqlFragment = momentSqlFragment
-    const statement = `${sqlFragment} where m.user_id = ? order by updateTime desc limit ?, ?`
+    const arr = ['await', 'pass', 'failed']
+    let statement = `
+      ${sqlFragment} where m.user_id = ? and status = ?
+       order by updateTime desc limit ?, ?
+    `
     const [result] = await connection.execute(statement, [
       userId,
+      arr.findIndex((item) => item === type),
       getOffset(pagenum, pagesize),
       pagesize,
     ])
     return result
+  }
+
+  async getMomentTotalByUser(uid, type, all = true) {
+    const arr = ['await', 'pass', 'failed']
+    const statement = `
+      select count(*) count 
+      from moment 
+      where user_id = ? and status = ?
+      ${!all ? 'and visible = 0' : ''}
+    `
+    const [result] = await connection.execute(statement, [
+      uid,
+      arr.findIndex((item) => item === type),
+    ])
+    return result[0]
   }
 
   async getAddress() {

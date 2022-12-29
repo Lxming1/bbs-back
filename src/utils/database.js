@@ -13,6 +13,9 @@ const connection = mysql.createPool({
   database: MYSQL_DATABASE,
   user: MYSQL_USERNAME,
   password: MYSQL_PASSWORD,
+  waitForConnections: true, //连接超额是否等待
+  connectionLimit: 10, //一次创建的最大连接数
+  queueLimit: 0, //可以等待的连接的个数
 })
 
 connection.getConnection((err, conn) => {

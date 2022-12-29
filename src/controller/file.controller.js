@@ -39,7 +39,7 @@ class FileController {
     } else {
       moment.author = await getUserInfo(moment.author)
     }
-    ctx.body = successBody(moment, '发表动态成功')
+    ctx.body = successBody(moment, '发布成功，请等待审核')
   }
 
   async delPicFromLocal(ctx) {

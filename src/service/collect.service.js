@@ -1,6 +1,23 @@
-const { getOffset } = require('../utils/common')
 const connection = require('../utils/database')
 const { APP_HOST, APP_PORT } = require('../app/config')
+const { momentSqlFragment } = require('./moment.service')
+
+const sqlFragment = (sql) => {
+  const fragment = `
+    select 
+      id, name, user_id uid,
+      (
+        select count(*) 
+        from collect_detail cd 
+        join moment m 
+        on m.id = cd.moment_id and m.status = 1
+        where cd.collect_id = c.id
+      ) count,
+      status, create_at createTime, update_at updateTime 
+  `
+  return fragment + sql
+}
+
 class Collect {
   async create(uid, name, status) {
     const statement = `insert into collect (user_id, name, status) value(?,?,?)`
@@ -15,25 +32,13 @@ class Collect {
   }
 
   async getCollectByUID(uid) {
-    const statement = `
-      select 
-        id, name, 
-        (select count(*) from collect_detail cd where cd.collect_id = c.id) count,
-        status, create_at createTime, update_at updateTime 
-      from collect c where user_id = ? order by updateTime desc
-    `
+    const statement = sqlFragment('from collect c where user_id = ? order by updateTime desc')
     const [result] = await connection.execute(statement, [uid])
     return result
   }
 
   async getCollectInfo(collectId) {
-    const statement = `
-      select 
-        id, name, user_id uid,
-        (select count(*) from collect_detail cd where cd.collect_id = c.id) count,
-        status, create_at createTime, update_at updateTime 
-      from collect c where id = ?
-    `
+    const statement = sqlFragment(`from collect c where id = ?`)
     const [result] = await connection.execute(statement, [collectId])
     return result[0]
   }
@@ -52,25 +57,10 @@ class Collect {
 
   async collectDetail(collectId) {
     const statement = `
-      SELECT 
-        m.id id, content, title,
-        (select 
-          JSON_ARRAYAGG(CONCAT('${APP_HOST}:${APP_PORT}/moment/image/', file.filename))
-          from file where m.id = file.moment_id
-        ) images,
-        JSON_OBJECT(
-          'id', p.id,
-          'name', p.name
-        ) plate,
-        (select count(*) from comment ml where ml.moment_id = m.id) commentCount,
-        m.user_id author, 
-        m.create_at createTime, m.update_at updataTime
-      FROM moment m
-      LEFT JOIN plate p 
-      ON m.plate_id = p.id 
+      ${momentSqlFragment} 
       JOIN collect_detail cd 
       ON cd.moment_id = m.id
-      WHERE cd.collect_id = ?
+      WHERE cd.collect_id = ? and m.status = 1
     `
     const [result] = await connection.execute(statement, [collectId])
     return result
